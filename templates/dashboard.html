@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="section-title">DAILY OPERATIONS</div>
+<h2 class="section-heading">What would you like to do?</h2>
+
+<div class="cards-grid">
+    <!-- Purchase -->
+    <a href="#" class="action-card">
+        <div class="card-icon">
+            <i class="ph ph-package"></i>
+        </div>
+        <div class="card-content">
+            <h3>Purchase</h3>
+            <p>Add Purchase / Stock</p>
+        </div>
+        <div class="card-arrow">
+            <i class="ph ph-caret-right"></i>
+        </div>
+    </a>
+
+    <!-- Billing / Sales -->
+    <a href="#" class="action-card">
+        <div class="card-icon">
+            <i class="ph ph-receipt"></i>
+        </div>
+        <div class="card-content">
+            <h3>Billing / Sales</h3>
+            <p>Create New Bill</p>
+        </div>
+        <div class="card-arrow">
+            <i class="ph ph-caret-right"></i>
+        </div>
+    </a>
+
+    <!-- Stock -->
+    <a href="#" class="action-card">
+        <div class="card-icon">
+            <i class="ph ph-cube"></i>
+        </div>
+        <div class="card-content">
+            <h3>Stock</h3>
+            <p>View Stock</p>
+        </div>
+        <div class="card-arrow">
+            <i class="ph ph-caret-right"></i>
+        </div>
+    </a>
+
+    <!-- Supplier Payment -->
+    <a href="#" class="action-card">
+        <div class="card-icon">
+            <i class="ph ph-truck"></i>
+        </div>
+        <div class="card-content">
+            <h3>Supplier Payment</h3>
+            <p>Make Payment</p>
+        </div>
+        <div class="card-arrow">
+            <i class="ph ph-caret-right"></i>
+        </div>
+    </a>
+
+    <!-- Customer Payment -->
+    <a href="#" class="action-card">
+        <div class="card-icon">
+            <i class="ph ph-credit-card"></i>
+        </div>
+        <div class="card-content">
+            <h3>Customer Payment</h3>
+            <p>Receive Payment</p>
+        </div>
+        <div class="card-arrow">
+            <i class="ph ph-caret-right"></i>
+        </div>
+    </a>
+
+    <!-- Expenses -->
+    <a href="#" class="action-card">
+        <div class="card-icon">
+            <i class="ph ph-wallet"></i>
+        </div>
+        <div class="card-content">
+            <h3>Expenses</h3>
+            <p>Add Expense</p>
+        </div>
+        <div class="card-arrow">
+            <i class="ph ph-caret-right"></i>
+        </div>
+    </a>
+</div>
+
+<!-- Alerts Section -->
+<div class="alerts-section">
+    <div class="alerts-header">
+        <div class="section-title">NEEDS ATTENTION</div>
+        <h2 class="section-heading">Low stock alerts</h2>
+    </div>
+    
+    <ul class="alert-list">
+        {% for product in low_stock_products %}
+            <li class="alert-item">
+                <div class="alert-name">{{ product.name }}</div>
+                <div class="alert-qty">{{ product.stock_quantity }} left</div>
+            </li>
+        {% empty %}
+            <li class="alert-item">
+                <div class="alert-name" style="color: var(--text-secondary); font-weight: normal;">No low stock alerts at this time.</div>
+            </li>
+        {% endfor %}
+        <!-- Mock Data if empty for visual parity with image if no db entries -->
+        {% if not low_stock_products %}
+            <li class="alert-item">
+                <div class="alert-name">Packing Box · Medium</div>
+                <div class="alert-qty">4 left</div>
+            </li>
+            <li class="alert-item">
+                <div class="alert-name">Blue Ball Pen</div>
+                <div class="alert-qty">3 left</div>
+            </li>
+            <li class="alert-item">
+                <div class="alert-name">Tape 3 Inch</div>
+                <div class="alert-qty">5 left</div>
+            </li>
+        {% endif %}
+    </ul>
+    
+    <a href="#" class="view-all-link">View products &gt;</a>
+</div>
+
+{% endblock %}

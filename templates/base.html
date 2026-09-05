@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Cover Land Admin{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">CL</div>
+            <div class="brand-text">
+                <h1>Cover Land</h1>
+                <p>SHOP MANAGEMENT</p>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-title">WORKSPACE</div>
+            <ul class="nav-list">
+                <li><a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="ph ph-squares-four"></i> Home</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-package"></i> Purchase</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-receipt"></i> Billing / Sales</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-cube"></i> Stock</a></li>
+            </ul>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-title">MONEY</div>
+            <ul class="nav-list">
+                <li><a href="#" class="nav-item"><i class="ph ph-credit-card"></i> Customer Payment</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-truck"></i> Supplier Payment</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-wallet"></i> Expenses</a></li>
+            </ul>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-title">OWNER TOOLS</div>
+            <ul class="nav-list">
+                <li><a href="#" class="nav-item"><i class="ph ph-users"></i> Customers</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-storefront"></i> Suppliers</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-box-arrow-up"></i> Products</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-folders"></i> Categories</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-chart-bar"></i> Reports</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-chart-pie-slice"></i> Outstanding</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-clock-counter-clockwise"></i> Payment History</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-database"></i> Backup & Restore</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-export"></i> Export Data</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-user-circle-gear"></i> User Management</a></li>
+                <li><a href="#" class="nav-item"><i class="ph ph-gear"></i> App Settings</a></li>
+            </ul>
+        </div>
+
+        <div class="nav-section" style="margin-top: auto;">
+            <ul class="nav-list">
+                <li><a href="#" class="nav-item"><i class="ph ph-lock-key"></i> Protected settings</a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="greeting">
+                <h2>Good morning, {% if user.is_authenticated %}{{ user.username|title }}{% else %}Owner{% endif %}</h2>
+                <p>Here's what's happening in your shop today.</p>
+            </div>
+            <div class="user-info">
+                <div class="date-badge">
+                    <i class="ph ph-calendar-blank"></i> <span id="current-date"></span>
+                </div>
+                <div class="user-badge">
+                    Owner
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Container -->
+        <div class="dashboard-container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <script>
+        // Set current date
+        const dateElement = document.getElementById('current-date');
+        const options = { day: '2-digit', month: 'short', year: 'numeric' };
+        dateElement.textContent = new Date().toLocaleDateString('en-GB', options);
+    </script>
+</body>
+</html>
