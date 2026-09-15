@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-wlde#$s86fm!+i843tvud6faw99qb-dy6=ow5*4os8r*(#o4bn
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['coverland-admin.onrender.com']
 
 
 # Application definition
