@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Purchase Order - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">CONFIRMATION</div>
+        <h1>Delete Purchase Order</h1>
+        <p class="page-subtitle">Are you sure you want to delete purchase #{{ object.id }}?</p>
+    </div>
+</div>
+
+<div class="form-card" style="max-width: 550px;">
+    <div class="alert alert-danger" style="margin-bottom: 24px;">
+        <div class="alert-icon"><i class="ph-bold ph-warning-circle"></i></div>
+        <div class="alert-content">
+            <strong>Warning:</strong> Deleting Purchase Order <strong>#{{ object.id }}</strong> will automatically decrease on-hand stock for all {{ object.items.count }} inward item(s).
+        </div>
+    </div>
+
+    <table class="table" style="margin-bottom: 24px;">
+        <tr>
+            <td style="color: var(--text-secondary); width: 120px;">Supplier:</td>
+            <td><strong>{{ object.supplier.name|default:"Direct Vendor" }}</strong></td>
+        </tr>
+        <tr>
+            <td style="color: var(--text-secondary);">Date:</td>
+            <td>{{ object.date|date:"d M Y" }}</td>
+        </tr>
+        <tr>
+            <td style="color: var(--text-secondary);">Total Amount:</td>
+            <td><strong>${{ object.total_amount }}</strong></td>
+        </tr>
+    </table>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-actions" style="justify-content: flex-start;">
+            <button type="submit" class="btn btn-danger">
+                <i class="ph-bold ph-trash"></i> Delete and Rollback Stock
+            </button>
+            <a href="{% url 'purchase_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

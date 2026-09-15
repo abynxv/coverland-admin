@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Customers - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">CLIENT MANAGEMENT</div>
+        <h1>Customers</h1>
+        <p class="page-subtitle">Track registered store clients, purchase history, and contact details</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'customer_create' %}" class="btn btn-primary">
+            <i class="ph-bold ph-plus"></i> Add Customer
+        </a>
+    </div>
+</div>
+
+<div class="toolbar">
+    <form method="get" class="search-box">
+        <i class="ph ph-magnifying-glass"></i>
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search customer by name, phone, email...">
+    </form>
+    <div class="filter-group">
+        {% if search_query %}
+            <a href="{% url 'customer_list' %}" class="btn btn-secondary btn-sm">
+                <i class="ph ph-x"></i> Clear Search
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Address</th>
+                    <th>Total Bills</th>
+                    <th>Total Spent</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td>
+                        <strong style="color: var(--text-primary);">{{ customer.name }}</strong>
+                    </td>
+                    <td>{{ customer.phone|default:"—" }}</td>
+                    <td>{{ customer.email|default:"—" }}</td>
+                    <td>
+                        <span style="color: var(--text-secondary);">
+                            {{ customer.address|default:"—"|truncatechars:40 }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-info">{{ customer.total_purchases_count }} bill(s)</span>
+                    </td>
+                    <td>
+                        <strong>${{ customer.total_spent|default:"0.00" }}</strong>
+                    </td>
+                    <td class="actions-cell">
+                        <a href="{% url 'customer_update' customer.pk %}" class="btn btn-secondary btn-sm" title="Edit Customer">
+                            <i class="ph ph-pencil-simple"></i> Edit
+                        </a>
+                        <a href="{% url 'customer_delete' customer.pk %}" class="btn btn-outline-danger btn-sm" title="Delete Customer">
+                            <i class="ph ph-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="ph ph-users"></i>
+                            <h3>No customers found</h3>
+                            <p>Add client contacts to easily track billing histories and customer loyalty.</p>
+                            <a href="{% url 'customer_create' %}" class="btn btn-primary btn-sm">
+                                <i class="ph ph-plus"></i> Add New Customer
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'includes/_pagination.html' %}
+</div>
+{% endblock %}

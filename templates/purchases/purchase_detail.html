@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Purchase #{{ purchase.id }} Details - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">PURCHASE ORDER</div>
+        <h1>Purchase Order #{{ purchase.id }}</h1>
+        <p class="page-subtitle">Recorded on {{ purchase.date|date:"F d, Y" }}</p>
+    </div>
+    <div class="page-actions">
+        <button onclick="window.print()" class="btn btn-secondary btn-print">
+            <i class="ph ph-printer"></i> Print PO
+        </button>
+        <a href="{% url 'purchase_list' %}" class="btn btn-secondary">
+            <i class="ph ph-arrow-left"></i> Back to Purchases
+        </a>
+    </div>
+</div>
+
+<div class="invoice-container">
+    <div class="invoice-header">
+        <div>
+            <h2 style="font-family: var(--font-serif); color: var(--text-primary); margin-bottom: 4px;">Cover Land</h2>
+            <p style="font-size: 13px; color: var(--text-secondary);">Shop Management System</p>
+        </div>
+        <div style="text-align: right;">
+            <span class="badge {% if purchase.payment_status == 'Paid' %}badge-success{% else %}badge-warning{% endif %}" style="font-size: 13px; padding: 5px 12px;">
+                {{ purchase.payment_status }}
+            </span>
+            <div style="font-size: 14px; font-weight: 600; margin-top: 6px; color: var(--text-primary);">
+                PO #{{ purchase.id }}
+            </div>
+            {% if purchase.invoice_number %}
+                <div style="font-size: 12px; color: var(--text-secondary);">Vendor Inv: {{ purchase.invoice_number }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="invoice-details">
+        <div>
+            <div style="font-size: 11.5px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">Supplier Information</div>
+            {% if purchase.supplier %}
+                <strong style="font-size: 15px; color: var(--text-primary);">{{ purchase.supplier.name }}</strong>
+                {% if purchase.supplier.phone %}<div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">Phone: {{ purchase.supplier.phone }}</div>{% endif %}
+                {% if purchase.supplier.email %}<div style="font-size: 13px; color: var(--text-secondary);">Email: {{ purchase.supplier.email }}</div>{% endif %}
+                {% if purchase.supplier.address %}<div style="font-size: 13px; color: var(--text-secondary);">{{ purchase.supplier.address }}</div>{% endif %}
+            {% else %}
+                <span style="color: var(--text-secondary);">Direct / Counter Vendor</span>
+            {% endif %}
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 11.5px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">Order Summary</div>
+            <div style="font-size: 13px; color: var(--text-secondary);">Date: <strong>{{ purchase.date|date:"d M Y" }}</strong></div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 3px;">Items: <strong>{{ purchase.items.count }} SKU(s)</strong></div>
+        </div>
+    </div>
+
+    <table class="items-table" style="margin-bottom: 24px;">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Item Description</th>
+                <th style="text-align: center;">Quantity</th>
+                <th style="text-align: right;">Unit Cost</th>
+                <th style="text-align: right;">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in purchase.items.all %}
+            <tr>
+                <td style="color: var(--text-secondary);">{{ forloop.counter }}</td>
+                <td>
+                    <strong style="color: var(--text-primary);">{{ item.product.name }}</strong>
+                    <div style="font-size: 11.5px; color: var(--text-secondary);">Category: {{ item.product.category.name }}</div>
+                </td>
+                <td style="text-align: center;">
+                    <strong>{{ item.quantity }}</strong> {{ item.product.unit }}
+                </td>
+                <td style="text-align: right;">${{ item.unit_price }}</td>
+                <td style="text-align: right; font-weight: 600;">${{ item.subtotal }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="totals-summary">
+        <table class="totals-table">
+            <tr class="grand-total">
+                <td>Total Paid / Payable:</td>
+                <td style="text-align: right;">${{ purchase.total_amount }}</td>
+            </tr>
+        </table>
+    </div>
+
+    {% if purchase.notes %}
+    <div style="margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--border-light);">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Notes</div>
+        <p style="font-size: 13.5px; color: var(--text-primary); margin-top: 4px;">{{ purchase.notes }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

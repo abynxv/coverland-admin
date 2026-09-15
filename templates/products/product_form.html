@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Product{% else %}Add Product{% endif %} - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">CATALOG & INVENTORY</div>
+        <h1>{% if form.instance.pk %}Edit Product: {{ form.instance.name }}{% else %}Add New Product{% endif %}</h1>
+        <p class="page-subtitle">Configure item name, category, pricing, and reorder alerts</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'product_list' %}" class="btn btn-secondary">
+            <i class="ph ph-arrow-left"></i> Back to Products
+        </a>
+    </div>
+</div>
+
+<div class="form-card">
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" style="margin-bottom: 20px;">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="form-grid">
+            <div class="form-group form-col-full">
+                <label class="form-label" for="{{ form.name.id_for_label }}">Product Name <span class="required">*</span></label>
+                {{ form.name }}
+                {% if form.name.errors %}<ul class="form-errors">{% for err in form.name.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="{{ form.category.id_for_label }}">Category <span class="required">*</span></label>
+                {{ form.category }}
+                {% if form.category.errors %}<ul class="form-errors">{% for err in form.category.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="{{ form.unit.id_for_label }}">Measurement Unit</label>
+                {{ form.unit }}
+                <p class="form-help">e.g. pcs, pack, meter, set</p>
+                {% if form.unit.errors %}<ul class="form-errors">{% for err in form.unit.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="{{ form.cost_price.id_for_label }}">Cost / Purchase Price ($) <span class="required">*</span></label>
+                {{ form.cost_price }}
+                {% if form.cost_price.errors %}<ul class="form-errors">{% for err in form.cost_price.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="{{ form.selling_price.id_for_label }}">Selling / Retail Price ($) <span class="required">*</span></label>
+                {{ form.selling_price }}
+                {% if form.selling_price.errors %}<ul class="form-errors">{% for err in form.selling_price.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="{{ form.stock_quantity.id_for_label }}">Initial Stock Quantity</label>
+                {{ form.stock_quantity }}
+                {% if form.stock_quantity.errors %}<ul class="form-errors">{% for err in form.stock_quantity.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="{{ form.reorder_level.id_for_label }}">Reorder Alert Level</label>
+                {{ form.reorder_level }}
+                <p class="form-help">Trigger low stock alert when inventory reaches this number.</p>
+                {% if form.reorder_level.errors %}<ul class="form-errors">{% for err in form.reorder_level.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'product_list' %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="ph-bold ph-check"></i> Save Product
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

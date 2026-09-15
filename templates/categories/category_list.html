@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Categories - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">CATALOG MANAGEMENT</div>
+        <h1>Product Categories</h1>
+        <p class="page-subtitle">Organize and manage catalog categories for your shop</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'category_create' %}" class="btn btn-primary">
+            <i class="ph-bold ph-plus"></i> Add Category
+        </a>
+    </div>
+</div>
+
+<div class="toolbar">
+    <form method="get" class="search-box">
+        <i class="ph ph-magnifying-glass"></i>
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search categories by name or description...">
+    </form>
+    <div class="filter-group">
+        {% if search_query %}
+            <a href="{% url 'category_list' %}" class="btn btn-secondary btn-sm">
+                <i class="ph ph-x"></i> Clear Search
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Category Name</th>
+                    <th>Description</th>
+                    <th>Total Products</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                <tr>
+                    <td>
+                        <strong style="font-size: 14px; color: var(--text-primary);">{{ category.name }}</strong>
+                    </td>
+                    <td>
+                        <span style="color: var(--text-secondary);">
+                            {{ category.description|default:"—"|truncatechars:80 }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-info">
+                            <i class="ph ph-cube"></i> {{ category.product_count }} items
+                        </span>
+                    </td>
+                    <td class="actions-cell">
+                        <a href="{% url 'category_update' category.pk %}" class="btn btn-secondary btn-sm" title="Edit Category">
+                            <i class="ph ph-pencil-simple"></i> Edit
+                        </a>
+                        <a href="{% url 'category_delete' category.pk %}" class="btn btn-outline-danger btn-sm" title="Delete Category">
+                            <i class="ph ph-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">
+                        <div class="empty-state">
+                            <i class="ph ph-folders"></i>
+                            <h3>No categories found</h3>
+                            <p>Get started by creating your first category like "Mobile Covers" or "Screen Protectors".</p>
+                            <a href="{% url 'category_create' %}" class="btn btn-primary btn-sm">
+                                <i class="ph ph-plus"></i> Add New Category
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'includes/_pagination.html' %}
+</div>
+{% endblock %}

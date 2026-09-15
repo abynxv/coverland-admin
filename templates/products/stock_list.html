@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Management - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">INVENTORY CONTROL</div>
+        <h1>Stock Overview</h1>
+        <p class="page-subtitle">Monitor stock quantities, replenish inventory, and manage reorder warnings</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'purchase_create' %}" class="btn btn-primary">
+            <i class="ph-bold ph-package"></i> New Purchase Order
+        </a>
+        <a href="{% url 'product_create' %}" class="btn btn-secondary">
+            <i class="ph-bold ph-plus"></i> New Product
+        </a>
+    </div>
+</div>
+
+<!-- Stock summary cards -->
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="ph-bold ph-cube"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total SKUs</div>
+            <div class="stat-value">{{ total_products }}</div>
+            <div class="stat-subtext">Active catalog products</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon amber">
+            <i class="ph-bold ph-warning"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Low Stock</div>
+            <div class="stat-value">{{ low_stock_count }}</div>
+            <div class="stat-subtext">Items at or below reorder level</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon red">
+            <i class="ph-bold ph-x-circle"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Out of Stock</div>
+            <div class="stat-value">{{ out_of_stock_count }}</div>
+            <div class="stat-subtext">Needs immediate reorder</div>
+        </div>
+    </div>
+</div>
+
+<div class="toolbar">
+    <form method="get" class="search-box">
+        <i class="ph ph-magnifying-glass"></i>
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Filter inventory by item name...">
+        {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+        {% if selected_stock_status %}<input type="hidden" name="stock_status" value="{{ selected_stock_status }}">{% endif %}
+    </form>
+
+    <form method="get" class="filter-group">
+        {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+
+        <select name="stock_status" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Inventory Statuses</option>
+            <option value="low" {% if selected_stock_status == 'low' %}selected{% endif %}>Low Stock Only</option>
+            <option value="out" {% if selected_stock_status == 'out' %}selected{% endif %}>Out of Stock Only</option>
+            <option value="in_stock" {% if selected_stock_status == 'in_stock' %}selected{% endif %}>Healthy Stock Only</option>
+        </select>
+
+        <select name="category" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+
+        {% if search_query or selected_stock_status or selected_category %}
+            <a href="{% url 'stock_list' %}" class="btn btn-secondary btn-sm">
+                <i class="ph ph-arrow-counter-clockwise"></i> Reset
+            </a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product & Category</th>
+                    <th>Stock Status</th>
+                    <th>Current Quantity</th>
+                    <th>Reorder Threshold</th>
+                    <th>Unit Cost</th>
+                    <th>Inventory Value</th>
+                    <th style="text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>
+                        <strong style="color: var(--text-primary);">{{ product.name }}</strong>
+                        <div style="font-size: 11.5px; color: var(--text-secondary);">
+                            Category: {{ product.category.name }}
+                        </div>
+                    </td>
+                    <td>
+                        {% if product.is_out_of_stock %}
+                            <span class="badge badge-danger">Out of Stock</span>
+                        {% elif product.is_low_stock %}
+                            <span class="badge badge-warning">Low Stock</span>
+                        {% else %}
+                            <span class="badge badge-success">In Stock</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong style="font-size: 15px; {% if product.is_low_stock %}color: var(--danger-text);{% endif %}">
+                            {{ product.stock_quantity }}
+                        </strong>
+                        <span style="font-size: 12px; color: var(--text-secondary);">{{ product.unit }}</span>
+                    </td>
+                    <td>
+                        <span style="color: var(--text-secondary);">{{ product.reorder_level }} {{ product.unit }}</span>
+                    </td>
+                    <td>${{ product.cost_price }}</td>
+                    <td>
+                        <!-- Calculated approximate inventory cost -->
+                        <strong>${% widthratio product.stock_quantity 1 product.cost_price %}</strong>
+                    </td>
+                    <td class="actions-cell">
+                        <a href="{% url 'stock_adjust' product.pk %}" class="btn btn-secondary btn-sm">
+                            <i class="ph-bold ph-sliders-horizontal"></i> Adjust
+                        </a>
+                        <a href="{% url 'purchase_create' %}" class="btn btn-outline btn-sm">
+                            <i class="ph ph-plus"></i> Reorder
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="ph ph-cube"></i>
+                            <h3>No inventory items found</h3>
+                            <p>No products match your filter criteria.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'includes/_pagination.html' %}
+</div>
+{% endblock %}

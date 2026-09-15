@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Product - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">CONFIRMATION</div>
+        <h1>Delete Product</h1>
+        <p class="page-subtitle">Are you sure you want to permanently delete this product SKU?</p>
+    </div>
+</div>
+
+<div class="form-card" style="max-width: 550px;">
+    <div class="alert alert-danger" style="margin-bottom: 24px;">
+        <div class="alert-icon"><i class="ph-bold ph-warning-circle"></i></div>
+        <div class="alert-content">
+            <strong>Warning:</strong> Deleting <strong>"{{ object.name }}"</strong> (Current stock: {{ object.stock_quantity }} {{ object.unit }}) will remove it from catalog and stock tracking.
+        </div>
+    </div>
+
+    <p style="margin-bottom: 24px; font-size: 14px; color: var(--text-secondary);">
+        This action cannot be undone. Any historical records linked directly will be affected.
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-actions" style="justify-content: flex-start;">
+            <button type="submit" class="btn btn-danger">
+                <i class="ph-bold ph-trash"></i> Yes, Delete Product
+            </button>
+            <a href="{% url 'product_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

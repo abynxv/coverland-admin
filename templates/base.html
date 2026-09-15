@@ -7,58 +7,90 @@
     <title>{% block title %}Cover Land Admin{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
 
     <!-- Sidebar -->
     <aside class="sidebar">
-        <div class="brand">
+        <a href="{% url 'dashboard' %}" class="brand">
             <div class="brand-icon">CL</div>
             <div class="brand-text">
                 <h1>Cover Land</h1>
                 <p>SHOP MANAGEMENT</p>
             </div>
-        </div>
+        </a>
 
         <div class="nav-section">
             <div class="nav-title">WORKSPACE</div>
             <ul class="nav-list">
-                <li><a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="ph ph-squares-four"></i> Home</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-package"></i> Purchase</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-receipt"></i> Billing / Sales</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-cube"></i> Stock</a></li>
+                <li>
+                    <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="ph ph-squares-four"></i> Home
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'purchase_list' %}" class="nav-item {% if 'purchase' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="ph ph-package"></i> Purchase
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'sale_list' %}" class="nav-item {% if 'sale' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="ph ph-receipt"></i> Billing / Sales
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'stock_list' %}" class="nav-item {% if request.resolver_match.url_name == 'stock_list' %}active{% endif %}">
+                        <i class="ph ph-cube"></i> Stock
+                    </a>
+                </li>
             </ul>
         </div>
 
         <div class="nav-section">
             <div class="nav-title">MONEY</div>
             <ul class="nav-list">
-                <li><a href="#" class="nav-item"><i class="ph ph-credit-card"></i> Customer Payment</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-truck"></i> Supplier Payment</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-wallet"></i> Expenses</a></li>
+                <li>
+                    <a href="{% url 'customer_list' %}" class="nav-item {% if 'customer' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="ph ph-users"></i> Customers
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'supplier_list' %}" class="nav-item {% if 'supplier' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="ph ph-storefront"></i> Suppliers
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'expense_list' %}" class="nav-item {% if 'expense' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="ph ph-wallet"></i> Expenses
+                    </a>
+                </li>
             </ul>
         </div>
 
         <div class="nav-section">
-            <div class="nav-title">OWNER TOOLS</div>
+            <div class="nav-title">CATALOG</div>
             <ul class="nav-list">
-                <li><a href="#" class="nav-item"><i class="ph ph-users"></i> Customers</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-storefront"></i> Suppliers</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-box-arrow-up"></i> Products</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-folders"></i> Categories</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-chart-bar"></i> Reports</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-chart-pie-slice"></i> Outstanding</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-clock-counter-clockwise"></i> Payment History</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-database"></i> Backup & Restore</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-export"></i> Export Data</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-user-circle-gear"></i> User Management</a></li>
-                <li><a href="#" class="nav-item"><i class="ph ph-gear"></i> App Settings</a></li>
+                <li>
+                    <a href="{% url 'product_list' %}" class="nav-item {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_create' or request.resolver_match.url_name == 'product_update' %}active{% endif %}">
+                        <i class="ph ph-box-arrow-up"></i> Products
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'category_list' %}" class="nav-item {% if 'category' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="ph ph-folders"></i> Categories
+                    </a>
+                </li>
             </ul>
         </div>
 
         <div class="nav-section" style="margin-top: auto;">
             <ul class="nav-list">
-                <li><a href="#" class="nav-item"><i class="ph ph-lock-key"></i> Protected settings</a></li>
+                <li>
+                    <a href="{% url 'admin:index' %}" class="nav-item" target="_blank">
+                        <i class="ph ph-shield-check"></i> Django Admin
+                    </a>
+                </li>
             </ul>
         </div>
     </aside>
@@ -68,21 +100,31 @@
         <!-- Topbar -->
         <header class="topbar">
             <div class="greeting">
-                <h2>Good morning, {% if user.is_authenticated %}{{ user.username|title }}{% else %}Owner{% endif %}</h2>
-                <p>Here's what's happening in your shop today.</p>
+                <h2>Good day, {% if user.is_authenticated %}{{ user.username|title }}{% else %}Owner{% endif %}</h2>
+                <p>Cover Land Retail & Shop Operations</p>
             </div>
             <div class="user-info">
                 <div class="date-badge">
                     <i class="ph ph-calendar-blank"></i> <span id="current-date"></span>
                 </div>
                 <div class="user-badge">
-                    Owner
+                    <i class="ph ph-user-circle"></i> {% if user.is_authenticated %}{{ user.username }}{% else %}Admin{% endif %}
                 </div>
+                {% if user.is_authenticated %}
+                <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn" title="Sign Out">
+                        <i class="ph ph-sign-out"></i> Logout
+                    </button>
+                </form>
+                {% endif %}
             </div>
         </header>
 
-        <!-- Dashboard Container -->
+        <!-- Container -->
         <div class="dashboard-container">
+            {% include 'includes/_messages.html' %}
+            
             {% block content %}
             {% endblock %}
         </div>
@@ -91,8 +133,11 @@
     <script>
         // Set current date
         const dateElement = document.getElementById('current-date');
-        const options = { day: '2-digit', month: 'short', year: 'numeric' };
-        dateElement.textContent = new Date().toLocaleDateString('en-GB', options);
+        if (dateElement) {
+            const options = { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' };
+            dateElement.textContent = new Date().toLocaleDateString('en-GB', options);
+        }
     </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

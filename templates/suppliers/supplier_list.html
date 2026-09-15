@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Suppliers - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">VENDOR RELATIONS</div>
+        <h1>Suppliers</h1>
+        <p class="page-subtitle">Manage wholesale vendors, distributors, and procurement contacts</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'supplier_create' %}" class="btn btn-primary">
+            <i class="ph-bold ph-plus"></i> Add Supplier
+        </a>
+    </div>
+</div>
+
+<div class="toolbar">
+    <form method="get" class="search-box">
+        <i class="ph ph-magnifying-glass"></i>
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search vendor by company name, phone, email...">
+    </form>
+    <div class="filter-group">
+        {% if search_query %}
+            <a href="{% url 'supplier_list' %}" class="btn btn-secondary btn-sm">
+                <i class="ph ph-x"></i> Clear Search
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Supplier / Company</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Address</th>
+                    <th>Orders Count</th>
+                    <th>Total Sourced</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for supplier in suppliers %}
+                <tr>
+                    <td>
+                        <strong style="color: var(--text-primary);">{{ supplier.name }}</strong>
+                    </td>
+                    <td>{{ supplier.phone|default:"—" }}</td>
+                    <td>{{ supplier.email|default:"—" }}</td>
+                    <td>
+                        <span style="color: var(--text-secondary);">
+                            {{ supplier.address|default:"—"|truncatechars:40 }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-info">{{ supplier.total_orders }} PO(s)</span>
+                    </td>
+                    <td>
+                        <strong>${{ supplier.total_purchased|default:"0.00" }}</strong>
+                    </td>
+                    <td class="actions-cell">
+                        <a href="{% url 'supplier_update' supplier.pk %}" class="btn btn-secondary btn-sm" title="Edit Supplier">
+                            <i class="ph ph-pencil-simple"></i> Edit
+                        </a>
+                        <a href="{% url 'supplier_delete' supplier.pk %}" class="btn btn-outline-danger btn-sm" title="Delete Supplier">
+                            <i class="ph ph-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="ph ph-storefront"></i>
+                            <h3>No suppliers found</h3>
+                            <p>Register your wholesale suppliers and manufacturers to keep procurement streamlined.</p>
+                            <a href="{% url 'supplier_create' %}" class="btn btn-primary btn-sm">
+                                <i class="ph ph-plus"></i> Add New Supplier
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'includes/_pagination.html' %}
+</div>
+{% endblock %}

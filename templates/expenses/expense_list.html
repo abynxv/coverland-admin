@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Expenses - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">EXPENSE & CASH OUTFLOW</div>
+        <h1>Expenses</h1>
+        <p class="page-subtitle">Track shop overheads, utilities, packaging, rent, and operational costs</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'expense_create' %}" class="btn btn-primary">
+            <i class="ph-bold ph-plus"></i> Add Expense
+        </a>
+    </div>
+</div>
+
+<div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+    <div class="stat-card">
+        <div class="stat-icon purple">
+            <i class="ph-bold ph-wallet"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Filtered Expenses Sum</div>
+            <div class="stat-value">${{ total_expense_amount }}</div>
+            <div class="stat-subtext">Total cash out for matching entries</div>
+        </div>
+    </div>
+</div>
+
+<div class="toolbar">
+    <form method="get" class="search-box">
+        <i class="ph ph-magnifying-glass"></i>
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search expense title or description...">
+        {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+    </form>
+
+    <form method="get" class="filter-group">
+        {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+
+        <select name="category" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Categories</option>
+            {% for code, label in categories %}
+                <option value="{{ code }}" {% if selected_category == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+
+        {% if search_query or selected_category %}
+            <a href="{% url 'expense_list' %}" class="btn btn-secondary btn-sm">
+                <i class="ph ph-arrow-counter-clockwise"></i> Reset
+            </a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Expense Title</th>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in expenses %}
+                <tr>
+                    <td>
+                        <strong style="color: var(--text-primary);">{{ expense.title }}</strong>
+                    </td>
+                    <td>{{ expense.date|date:"d M Y" }}</td>
+                    <td>
+                        <span class="badge badge-neutral">{{ expense.get_category_display }}</span>
+                    </td>
+                    <td>
+                        <strong style="font-size: 15px; color: var(--danger-text);">${{ expense.amount }}</strong>
+                    </td>
+                    <td>
+                        <span style="color: var(--text-secondary);">
+                            {{ expense.description|default:"—"|truncatechars:45 }}
+                        </span>
+                    </td>
+                    <td class="actions-cell">
+                        <a href="{% url 'expense_update' expense.pk %}" class="btn btn-secondary btn-sm" title="Edit Expense">
+                            <i class="ph ph-pencil-simple"></i> Edit
+                        </a>
+                        <a href="{% url 'expense_delete' expense.pk %}" class="btn btn-outline-danger btn-sm" title="Delete Expense">
+                            <i class="ph ph-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <i class="ph ph-wallet"></i>
+                            <h3>No expenses recorded</h3>
+                            <p>Keep your accounting balanced by recording shop utility bills, rent, and upkeep.</p>
+                            <a href="{% url 'expense_create' %}" class="btn btn-primary btn-sm">
+                                <i class="ph ph-plus"></i> Add New Expense
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'includes/_pagination.html' %}
+</div>
+{% endblock %}

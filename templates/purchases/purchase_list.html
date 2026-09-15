@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Purchases - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">PROCUREMENT & INVENTORY</div>
+        <h1>Purchases</h1>
+        <p class="page-subtitle">Track stock inward deliveries, supplier invoices, and procurement spending</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'purchase_create' %}" class="btn btn-primary">
+            <i class="ph-bold ph-plus"></i> New Purchase Order
+        </a>
+    </div>
+</div>
+
+<div class="toolbar">
+    <form method="get" class="search-box">
+        <i class="ph ph-magnifying-glass"></i>
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search by invoice #, supplier name, notes...">
+        {% if selected_supplier %}<input type="hidden" name="supplier" value="{{ selected_supplier }}">{% endif %}
+        {% if selected_status %}<input type="hidden" name="payment_status" value="{{ selected_status }}">{% endif %}
+    </form>
+
+    <form method="get" class="filter-group">
+        {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+
+        <select name="supplier" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Suppliers</option>
+            {% for sup in suppliers %}
+                <option value="{{ sup.id }}" {% if selected_supplier == sup.id|stringformat:"s" %}selected{% endif %}>{{ sup.name }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="payment_status" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Payment Statuses</option>
+            <option value="Paid" {% if selected_status == 'Paid' %}selected{% endif %}>Paid</option>
+            <option value="Pending" {% if selected_status == 'Pending' %}selected{% endif %}>Pending</option>
+        </select>
+
+        {% if search_query or selected_supplier or selected_status %}
+            <a href="{% url 'purchase_list' %}" class="btn btn-secondary btn-sm">
+                <i class="ph ph-arrow-counter-clockwise"></i> Reset
+            </a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>PO / Invoice #</th>
+                    <th>Date</th>
+                    <th>Supplier</th>
+                    <th>Items Count</th>
+                    <th>Total Amount</th>
+                    <th>Payment Status</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for purchase in purchases %}
+                <tr>
+                    <td>
+                        <a href="{% url 'purchase_detail' purchase.pk %}" style="font-weight: 600; color: var(--accent-blue); text-decoration: none;">
+                            {{ purchase.invoice_number|default:purchase.id }}
+                        </a>
+                        <div style="font-size: 11px; color: var(--text-secondary);">ID #{{ purchase.id }}</div>
+                    </td>
+                    <td>{{ purchase.date|date:"d M Y" }}</td>
+                    <td>
+                        {% if purchase.supplier %}
+                            <strong>{{ purchase.supplier.name }}</strong>
+                        {% else %}
+                            <span style="color: var(--text-secondary);">Direct Vendor</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge badge-neutral">
+                            {{ purchase.items.count }} item(s)
+                        </span>
+                    </td>
+                    <td>
+                        <strong style="font-size: 14.5px; color: var(--text-primary);">${{ purchase.total_amount }}</strong>
+                    </td>
+                    <td>
+                        {% if purchase.payment_status == 'Paid' %}
+                            <span class="badge badge-success">Paid</span>
+                        {% else %}
+                            <span class="badge badge-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="actions-cell">
+                        <a href="{% url 'purchase_detail' purchase.pk %}" class="btn btn-secondary btn-sm" title="View Details">
+                            <i class="ph ph-eye"></i> View
+                        </a>
+                        <a href="{% url 'purchase_delete' purchase.pk %}" class="btn btn-outline-danger btn-sm" title="Delete Purchase">
+                            <i class="ph ph-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="ph ph-package"></i>
+                            <h3>No purchase orders found</h3>
+                            <p>Record stock purchases from your suppliers to automatically update inventory levels.</p>
+                            <a href="{% url 'purchase_create' %}" class="btn btn-primary btn-sm">
+                                <i class="ph ph-plus"></i> Record Purchase
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'includes/_pagination.html' %}
+</div>
+{% endblock %}
