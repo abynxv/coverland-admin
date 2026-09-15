@@ -1,0 +1,25 @@
+{% if messages %}
+<div class="messages-container">
+    {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}" role="alert">
+            <div class="alert-icon">
+                {% if 'success' in message.tags %}
+                    <i class="ph-bold ph-check-circle"></i>
+                {% elif 'error' in message.tags or 'danger' in message.tags %}
+                    <i class="ph-bold ph-warning-circle"></i>
+                {% elif 'warning' in message.tags %}
+                    <i class="ph-bold ph-warning"></i>
+                {% else %}
+                    <i class="ph-bold ph-info"></i>
+                {% endif %}
+            </div>
+            <div class="alert-content">
+                {{ message }}
+            </div>
+            <button type="button" class="alert-close" onclick="this.parentElement.remove();" aria-label="Close">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}

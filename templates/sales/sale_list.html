@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales & Billing - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">BILLING & POINT OF SALE</div>
+        <h1>Sales & Invoices</h1>
+        <p class="page-subtitle">Generate bills, issue receipts, track customer transactions, and monitor revenue</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'sale_create' %}" class="btn btn-primary">
+            <i class="ph-bold ph-plus"></i> Create New Bill
+        </a>
+    </div>
+</div>
+
+<div class="toolbar">
+    <form method="get" class="search-box">
+        <i class="ph ph-magnifying-glass"></i>
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search by invoice #, customer name, notes...">
+        {% if selected_customer %}<input type="hidden" name="customer" value="{{ selected_customer }}">{% endif %}
+        {% if selected_method %}<input type="hidden" name="payment_method" value="{{ selected_method }}">{% endif %}
+        {% if selected_status %}<input type="hidden" name="payment_status" value="{{ selected_status }}">{% endif %}
+    </form>
+
+    <form method="get" class="filter-group">
+        {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+
+        <select name="payment_method" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Payment Modes</option>
+            <option value="Cash" {% if selected_method == 'Cash' %}selected{% endif %}>Cash</option>
+            <option value="Card" {% if selected_method == 'Card' %}selected{% endif %}>Card</option>
+            <option value="UPI" {% if selected_method == 'UPI' %}selected{% endif %}>UPI</option>
+            <option value="Credit" {% if selected_method == 'Credit' %}selected{% endif %}>Credit</option>
+        </select>
+
+        <select name="payment_status" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Payment Statuses</option>
+            <option value="Paid" {% if selected_status == 'Paid' %}selected{% endif %}>Paid</option>
+            <option value="Pending" {% if selected_status == 'Pending' %}selected{% endif %}>Pending</option>
+        </select>
+
+        <select name="customer" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Customers</option>
+            {% for cust in customers %}
+                <option value="{{ cust.id }}" {% if selected_customer == cust.id|stringformat:"s" %}selected{% endif %}>{{ cust.name }}</option>
+            {% endfor %}
+        </select>
+
+        {% if search_query or selected_customer or selected_method or selected_status %}
+            <a href="{% url 'sale_list' %}" class="btn btn-secondary btn-sm">
+                <i class="ph ph-arrow-counter-clockwise"></i> Reset
+            </a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Payment Mode</th>
+                    <th>Total Amount</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td>
+                        <a href="{% url 'sale_detail' sale.pk %}" style="font-weight: 600; color: var(--accent-blue); text-decoration: none;">
+                            {{ sale.invoice_number }}
+                        </a>
+                    </td>
+                    <td>{{ sale.date|date:"d M Y" }}</td>
+                    <td>
+                        {% if sale.customer %}
+                            <strong>{{ sale.customer.name }}</strong>
+                            {% if sale.customer.phone %}<div style="font-size: 11px; color: var(--text-secondary);">{{ sale.customer.phone }}</div>{% endif %}
+                        {% else %}
+                            <span style="color: var(--text-secondary);">Walk-in Customer</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge badge-neutral">
+                            {{ sale.items.count }} item(s)
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-info">{{ sale.payment_method }}</span>
+                    </td>
+                    <td>
+                        <strong style="font-size: 15px; color: var(--text-primary);">${{ sale.total_amount }}</strong>
+                    </td>
+                    <td>
+                        {% if sale.payment_status == 'Paid' %}
+                            <span class="badge badge-success">Paid</span>
+                        {% else %}
+                            <span class="badge badge-warning">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="actions-cell">
+                        <a href="{% url 'sale_detail' sale.pk %}" class="btn btn-secondary btn-sm" title="View / Print Invoice">
+                            <i class="ph ph-receipt"></i> Bill
+                        </a>
+                        <a href="{% url 'sale_delete' sale.pk %}" class="btn btn-outline-danger btn-sm" title="Cancel / Delete Sale">
+                            <i class="ph ph-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <i class="ph ph-receipt"></i>
+                            <h3>No sales bills found</h3>
+                            <p>Create a bill when customers purchase products from Cover Land.</p>
+                            <a href="{% url 'sale_create' %}" class="btn btn-primary btn-sm">
+                                <i class="ph ph-plus"></i> Create New Bill
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'includes/_pagination.html' %}
+</div>
+{% endblock %}

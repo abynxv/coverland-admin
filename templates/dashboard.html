@@ -1,18 +1,69 @@
 {% extends 'base.html' %}
 
+{% block title %}Dashboard - Cover Land{% endblock %}
+
 {% block content %}
+<!-- Financial & Store Metrics Overview -->
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i class="ph-bold ph-receipt"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Sales Revenue</div>
+            <div class="stat-value">${{ total_sales }}</div>
+            <div class="stat-subtext">Cumulative billed sales</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="ph-bold ph-package"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Purchases</div>
+            <div class="stat-value">${{ total_purchases }}</div>
+            <div class="stat-subtext">Inventory procurement</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon purple">
+            <i class="ph-bold ph-wallet"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Expenses</div>
+            <div class="stat-value">${{ total_expenses }}</div>
+            <div class="stat-subtext">Shop overheads & bills</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon amber">
+            <i class="ph-bold ph-chart-line-up"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Net Financial Flow</div>
+            <div class="stat-value" {% if estimated_margin < 0 %}style="color: var(--danger-text);"{% endif %}>
+                ${{ estimated_margin }}
+            </div>
+            <div class="stat-subtext">Sales - (Procurement + Expenses)</div>
+        </div>
+    </div>
+</div>
+
 <div class="section-title">DAILY OPERATIONS</div>
 <h2 class="section-heading">What would you like to do?</h2>
 
 <div class="cards-grid">
     <!-- Purchase -->
-    <a href="#" class="action-card">
+    <a href="{% url 'purchase_create' %}" class="action-card">
         <div class="card-icon">
-            <i class="ph ph-package"></i>
+            <i class="ph-bold ph-package"></i>
         </div>
         <div class="card-content">
-            <h3>Purchase</h3>
-            <p>Add Purchase / Stock</p>
+            <h3>New Purchase</h3>
+            <p>Inward Stock Delivery</p>
         </div>
         <div class="card-arrow">
             <i class="ph ph-caret-right"></i>
@@ -20,13 +71,13 @@
     </a>
 
     <!-- Billing / Sales -->
-    <a href="#" class="action-card">
+    <a href="{% url 'sale_create' %}" class="action-card">
         <div class="card-icon">
-            <i class="ph ph-receipt"></i>
+            <i class="ph-bold ph-receipt"></i>
         </div>
         <div class="card-content">
             <h3>Billing / Sales</h3>
-            <p>Create New Bill</p>
+            <p>Generate Bill & Receipt</p>
         </div>
         <div class="card-arrow">
             <i class="ph ph-caret-right"></i>
@@ -34,41 +85,41 @@
     </a>
 
     <!-- Stock -->
-    <a href="#" class="action-card">
+    <a href="{% url 'stock_list' %}" class="action-card">
         <div class="card-icon">
-            <i class="ph ph-cube"></i>
+            <i class="ph-bold ph-cube"></i>
         </div>
         <div class="card-content">
-            <h3>Stock</h3>
-            <p>View Stock</p>
+            <h3>Stock Management</h3>
+            <p>View & Audit Inventory</p>
         </div>
         <div class="card-arrow">
             <i class="ph ph-caret-right"></i>
         </div>
     </a>
 
-    <!-- Supplier Payment -->
-    <a href="#" class="action-card">
+    <!-- Suppliers -->
+    <a href="{% url 'supplier_list' %}" class="action-card">
         <div class="card-icon">
-            <i class="ph ph-truck"></i>
+            <i class="ph-bold ph-storefront"></i>
         </div>
         <div class="card-content">
-            <h3>Supplier Payment</h3>
-            <p>Make Payment</p>
+            <h3>Suppliers</h3>
+            <p>Wholesale Vendors ({{ total_suppliers }})</p>
         </div>
         <div class="card-arrow">
             <i class="ph ph-caret-right"></i>
         </div>
     </a>
 
-    <!-- Customer Payment -->
-    <a href="#" class="action-card">
+    <!-- Customers -->
+    <a href="{% url 'customer_list' %}" class="action-card">
         <div class="card-icon">
-            <i class="ph ph-credit-card"></i>
+            <i class="ph-bold ph-users"></i>
         </div>
         <div class="card-content">
-            <h3>Customer Payment</h3>
-            <p>Receive Payment</p>
+            <h3>Customers</h3>
+            <p>Client Profiles ({{ total_customers }})</p>
         </div>
         <div class="card-arrow">
             <i class="ph ph-caret-right"></i>
@@ -76,13 +127,13 @@
     </a>
 
     <!-- Expenses -->
-    <a href="#" class="action-card">
+    <a href="{% url 'expense_create' %}" class="action-card">
         <div class="card-icon">
-            <i class="ph ph-wallet"></i>
+            <i class="ph-bold ph-wallet"></i>
         </div>
         <div class="card-content">
-            <h3>Expenses</h3>
-            <p>Add Expense</p>
+            <h3>Add Expense</h3>
+            <p>Record Overhead & Bills</p>
         </div>
         <div class="card-arrow">
             <i class="ph ph-caret-right"></i>
@@ -90,42 +141,76 @@
     </a>
 </div>
 
-<!-- Alerts Section -->
-<div class="alerts-section">
-    <div class="alerts-header">
-        <div class="section-title">NEEDS ATTENTION</div>
-        <h2 class="section-heading">Low stock alerts</h2>
-    </div>
-    
-    <ul class="alert-list">
-        {% for product in low_stock_products %}
-            <li class="alert-item">
-                <div class="alert-name">{{ product.name }}</div>
-                <div class="alert-qty">{{ product.stock_quantity }} left</div>
-            </li>
-        {% empty %}
-            <li class="alert-item">
-                <div class="alert-name" style="color: var(--text-secondary); font-weight: normal;">No low stock alerts at this time.</div>
-            </li>
-        {% endfor %}
-        <!-- Mock Data if empty for visual parity with image if no db entries -->
-        {% if not low_stock_products %}
-            <li class="alert-item">
-                <div class="alert-name">Packing Box · Medium</div>
-                <div class="alert-qty">4 left</div>
-            </li>
-            <li class="alert-item">
-                <div class="alert-name">Blue Ball Pen</div>
-                <div class="alert-qty">3 left</div>
-            </li>
-            <li class="alert-item">
-                <div class="alert-name">Tape 3 Inch</div>
-                <div class="alert-qty">5 left</div>
-            </li>
-        {% endif %}
-    </ul>
-    
-    <a href="#" class="view-all-link">View products &gt;</a>
-</div>
+<!-- Lower Grid: Low Stock Alert & Recent Transactions -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
+    <!-- Alerts Section -->
+    <div class="alerts-section">
+        <div class="alerts-header">
+            <div class="section-title">NEEDS ATTENTION</div>
+            <h2 class="section-heading">Low stock alerts ({% if low_stock_count %}{{ low_stock_count }}{% else %}0{% endif %})</h2>
+        </div>
 
+        <ul class="alert-list">
+            {% for product in low_stock_products %}
+                <li class="alert-item">
+                    <div class="alert-name">
+                        {{ product.name }}
+                        <span style="font-size: 11px; color: var(--text-secondary);">({{ product.category.name }})</span>
+                    </div>
+                    <div>
+                        <span class="alert-qty">{{ product.stock_quantity }} {{ product.unit }} left</span>
+                    </div>
+                </li>
+            {% empty %}
+                <li class="alert-item">
+                    <div class="alert-name" style="color: var(--text-secondary); font-weight: normal;">
+                        <i class="ph-bold ph-check-circle" style="color: var(--success-text); margin-right: 6px;"></i>
+                        All inventory items are currently well-stocked.
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <a href="{% url 'stock_list' %}?stock_status=low" class="view-all-link">
+            View low stock products &gt;
+        </a>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="alerts-section">
+        <div class="alerts-header">
+            <div class="section-title">LATEST ACTIVITY</div>
+            <h2 class="section-heading">Recent sales bills</h2>
+        </div>
+
+        <ul class="alert-list">
+            {% for sale in recent_sales %}
+                <li class="alert-item">
+                    <div>
+                        <a href="{% url 'sale_detail' sale.pk %}" style="color: var(--accent-blue); font-weight: 600; text-decoration: none;">
+                            {{ sale.invoice_number }}
+                        </a>
+                        <div style="font-size: 11.5px; color: var(--text-secondary);">
+                            {{ sale.customer.name|default:"Walk-in Customer" }} · {{ sale.date|date:"d M" }}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <strong style="color: var(--text-primary); font-size: 14px;">${{ sale.total_amount }}</strong>
+                        <div style="font-size: 11px; color: var(--text-secondary);">{{ sale.payment_method }}</div>
+                    </div>
+                </li>
+            {% empty %}
+                <li class="alert-item">
+                    <div class="alert-name" style="color: var(--text-secondary); font-weight: normal;">
+                        No recent sales recorded yet.
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <a href="{% url 'sale_list' %}" class="view-all-link">
+            View all sales transactions &gt;
+        </a>
+    </div>
+</div>
 {% endblock %}

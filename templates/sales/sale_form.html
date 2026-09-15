@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Bill / Sale - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">BILLING & POINT OF SALE</div>
+        <h1>Create New Bill</h1>
+        <p class="page-subtitle">Select items, compute bill total, and automatically deduct stock</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'sale_list' %}" class="btn btn-secondary">
+            <i class="ph ph-arrow-left"></i> Back to Bills
+        </a>
+    </div>
+</div>
+
+<form method="post" id="sale-form" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger" style="margin-bottom: 20px;">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <!-- Sale Header Details -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">1. Customer & Payment Information</h3>
+        </div>
+        <div class="card-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.customer.id_for_label }}">Customer (Optional)</label>
+                    {{ form.customer }}
+                    <p class="form-help">Leave blank for walk-in / cash customers.</p>
+                    {% if form.customer.errors %}<ul class="form-errors">{% for err in form.customer.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.payment_method.id_for_label }}">Payment Mode <span class="required">*</span></label>
+                    {{ form.payment_method }}
+                    {% if form.payment_method.errors %}<ul class="form-errors">{% for err in form.payment_method.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.payment_status.id_for_label }}">Payment Status <span class="required">*</span></label>
+                    {{ form.payment_status }}
+                    {% if form.payment_status.errors %}<ul class="form-errors">{% for err in form.payment_status.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.notes.id_for_label }}">Bill Notes / Remarks</label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}<ul class="form-errors">{% for err in form.notes.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sale Line Items -->
+    <div class="items-card">
+        <div class="items-header">
+            <div>
+                <h3 class="card-title">2. Billing Items</h3>
+                <p style="font-size: 12.5px; color: var(--text-secondary); margin-top: 2px;">
+                    Select items to sell. Stock is checked in real-time and deducted upon saving.
+                </p>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" id="add-item-btn">
+                <i class="ph-bold ph-plus"></i> Add Item Row
+            </button>
+        </div>
+
+        {{ items_formset.management_form }}
+
+        <div class="table-responsive">
+            <table class="items-table" id="items-table">
+                <thead>
+                    <tr>
+                        <th style="width: 45%;">Product</th>
+                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 20%;">Unit Price ($)</th>
+                        <th style="width: 15%;">Subtotal ($)</th>
+                        <th style="width: 5%;"></th>
+                    </tr>
+                </thead>
+                <tbody id="items-tbody">
+                    {% for item_form in items_formset %}
+                    <tr class="item-row">
+                        <td>
+                            {{ item_form.id }}
+                            {{ item_form.product }}
+                            <div class="stock-info" style="font-size: 11.5px; margin-top: 4px; color: var(--text-secondary);"></div>
+                            {% if item_form.product.errors %}<ul class="form-errors">{% for err in item_form.product.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+                        </td>
+                        <td>
+                            {{ item_form.quantity }}
+                            {% if item_form.quantity.errors %}<ul class="form-errors">{% for err in item_form.quantity.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+                        </td>
+                        <td>
+                            {{ item_form.unit_price }}
+                            {% if item_form.unit_price.errors %}<ul class="form-errors">{% for err in item_form.unit_price.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+                        </td>
+                        <td>
+                            <input type="text" class="form-control item-subtotal" readonly value="0.00" style="background-color: var(--bg-main); font-weight: 600;">
+                        </td>
+                        <td style="text-align: center;">
+                            {% if items_formset.can_delete %}
+                                <div style="display: none;">{{ item_form.DELETE }}</div>
+                            {% endif %}
+                            <button type="button" class="btn-icon btn-icon-danger remove-row-btn" title="Remove Item">
+                                <i class="ph-bold ph-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="totals-summary">
+            <table class="totals-table">
+                <tr class="grand-total">
+                    <td>Grand Total Payable:</td>
+                    <td style="text-align: right;" id="grand-total-display">$0.00</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-actions" style="margin-top: 0;">
+        <a href="{% url 'sale_list' %}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-success btn-lg">
+            <i class="ph-bold ph-receipt"></i> Generate Invoice & Print
+        </button>
+    </div>
+</form>
+
+<script>
+    // Product catalog data lookup
+    const productsData = {
+        {% for p in products %}
+            "{{ p.id }}": {
+                price: {{ p.selling_price|default:0 }},
+                stock: {{ p.stock_quantity }},
+                unit: "{{ p.unit }}"
+            },
+        {% endfor %}
+    };
+
+    function recalculateTotals() {
+        let grandTotal = 0;
+        document.querySelectorAll('#items-tbody .item-row').forEach(row => {
+            if (row.style.display === 'none') return;
+            const qty = parseFloat(row.querySelector('.item-qty')?.value) || 0;
+            const price = parseFloat(row.querySelector('.item-price')?.value) || 0;
+            const subtotal = qty * price;
+            const subtotalInput = row.querySelector('.item-subtotal');
+            if (subtotalInput) {
+                subtotalInput.value = subtotal.toFixed(2);
+            }
+            grandTotal += subtotal;
+        });
+        document.getElementById('grand-total-display').textContent = '$' + grandTotal.toFixed(2);
+    }
+
+    function setupRowListeners(row) {
+        const prodSelect = row.querySelector('.item-product');
+        const priceInput = row.querySelector('.item-price');
+        const qtyInput = row.querySelector('.item-qty');
+        const stockInfo = row.querySelector('.stock-info');
+        const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+        const removeBtn = row.querySelector('.remove-row-btn');
+
+        function updateStockNotice() {
+            const pId = prodSelect?.value;
+            if (pId && productsData[pId]) {
+                const item = productsData[pId];
+                if (stockInfo) {
+                    if (item.stock <= 0) {
+                        stockInfo.innerHTML = `<span style="color: var(--danger-text); font-weight: 600;">Out of Stock (0 ${item.unit})</span>`;
+                    } else {
+                        stockInfo.innerHTML = `<span>In Stock: <strong>${item.stock}</strong> ${item.unit}</span>`;
+                    }
+                }
+            } else if (stockInfo) {
+                stockInfo.innerHTML = '';
+            }
+        }
+
+        if (prodSelect) {
+            prodSelect.addEventListener('change', function() {
+                const pId = this.value;
+                if (productsData[pId]) {
+                    priceInput.value = parseFloat(productsData[pId].price).toFixed(2);
+                }
+                updateStockNotice();
+                recalculateTotals();
+            });
+            updateStockNotice();
+        }
+
+        if (qtyInput) qtyInput.addEventListener('input', recalculateTotals);
+        if (priceInput) priceInput.addEventListener('input', recalculateTotals);
+
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function() {
+                const totalRows = document.querySelectorAll('#items-tbody .item-row:not([style*="display: none"])').length;
+                if (totalRows <= 1) {
+                    alert('A sale bill must contain at least one item.');
+                    return;
+                }
+                if (deleteCheckbox) {
+                    deleteCheckbox.checked = true;
+                }
+                row.style.display = 'none';
+                recalculateTotals();
+            });
+        }
+    }
+
+    document.querySelectorAll('#items-tbody .item-row').forEach(setupRowListeners);
+    recalculateTotals();
+
+    // Add new row logic
+    document.getElementById('add-item-btn').addEventListener('click', function() {
+        const totalFormsInput = document.getElementById('id_items-TOTAL_FORMS');
+        const formCount = parseInt(totalFormsInput.value);
+        const tbody = document.getElementById('items-tbody');
+        const firstRow = tbody.querySelector('.item-row');
+
+        const newRow = firstRow.cloneNode(true);
+        newRow.style.display = '';
+
+        // Reset inputs and update form indexes
+        newRow.querySelectorAll('input, select').forEach(input => {
+            const name = input.getAttribute('name');
+            if (name) {
+                input.setAttribute('name', name.replace(/-\d+-/, `-${formCount}-`));
+                input.setAttribute('id', input.getAttribute('id').replace(/-\d+-/, `-${formCount}-`));
+            }
+            if (input.type === 'checkbox') {
+                input.checked = false;
+            } else if (!input.classList.contains('item-subtotal')) {
+                if (input.classList.contains('item-qty')) input.value = 1;
+                else input.value = '';
+            }
+        });
+
+        const stockInfo = newRow.querySelector('.stock-info');
+        if (stockInfo) stockInfo.innerHTML = '';
+
+        tbody.appendChild(newRow);
+        totalFormsInput.value = formCount + 1;
+        setupRowListeners(newRow);
+        recalculateTotals();
+    });
+</script>
+{% endblock %}

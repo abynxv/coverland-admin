@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Cancel Sale / Delete Invoice - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">CONFIRMATION</div>
+        <h1>Cancel / Delete Sale</h1>
+        <p class="page-subtitle">Are you sure you want to cancel invoice {{ object.invoice_number }}?</p>
+    </div>
+</div>
+
+<div class="form-card" style="max-width: 550px;">
+    <div class="alert alert-warning" style="margin-bottom: 24px;">
+        <div class="alert-icon"><i class="ph-bold ph-warning"></i></div>
+        <div class="alert-content">
+            <strong>Stock Restoration:</strong> Deleting sale <strong>{{ object.invoice_number }}</strong> will restore the sold quantities back into store inventory.
+        </div>
+    </div>
+
+    <table class="table" style="margin-bottom: 24px;">
+        <tr>
+            <td style="color: var(--text-secondary); width: 140px;">Customer:</td>
+            <td><strong>{{ object.customer.name|default:"Walk-in Customer" }}</strong></td>
+        </tr>
+        <tr>
+            <td style="color: var(--text-secondary);">Date:</td>
+            <td>{{ object.date|date:"d M Y" }}</td>
+        </tr>
+        <tr>
+            <td style="color: var(--text-secondary);">Payment Mode:</td>
+            <td>{{ object.payment_method }}</td>
+        </tr>
+        <tr>
+            <td style="color: var(--text-secondary);">Bill Amount:</td>
+            <td><strong>${{ object.total_amount }}</strong></td>
+        </tr>
+    </table>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-actions" style="justify-content: flex-start;">
+            <button type="submit" class="btn btn-danger">
+                <i class="ph-bold ph-trash"></i> Cancel Bill & Restore Stock
+            </button>
+            <a href="{% url 'sale_list' %}" class="btn btn-secondary">Go Back</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

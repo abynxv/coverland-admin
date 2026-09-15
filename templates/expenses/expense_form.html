@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Expense{% else %}Record Expense{% endif %} - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">EXPENSE & CASH OUTFLOW</div>
+        <h1>{% if form.instance.pk %}Edit Expense: {{ form.instance.title }}{% else %}Record New Expense{% endif %}</h1>
+        <p class="page-subtitle">Track operational costs and shop expenditures</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'expense_list' %}" class="btn btn-secondary">
+            <i class="ph ph-arrow-left"></i> Back to Expenses
+        </a>
+    </div>
+</div>
+
+<div class="form-card">
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" style="margin-bottom: 20px;">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="form-grid">
+            <div class="form-group form-col-full">
+                <label class="form-label" for="{{ form.title.id_for_label }}">Expense Title <span class="required">*</span></label>
+                {{ form.title }}
+                {% if form.title.errors %}<ul class="form-errors">{% for err in form.title.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="{{ form.category.id_for_label }}">Category <span class="required">*</span></label>
+                {{ form.category }}
+                {% if form.category.errors %}<ul class="form-errors">{% for err in form.category.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="{{ form.amount.id_for_label }}">Amount ($) <span class="required">*</span></label>
+                {{ form.amount }}
+                {% if form.amount.errors %}<ul class="form-errors">{% for err in form.amount.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="{{ form.date.id_for_label }}">Expense Date <span class="required">*</span></label>
+                {{ form.date }}
+                {% if form.date.errors %}<ul class="form-errors">{% for err in form.date.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            <div class="form-group form-col-full">
+                <label class="form-label" for="{{ form.description.id_for_label }}">Description / Reference</label>
+                {{ form.description }}
+                <p class="form-help">Optional bill receipt number or notes.</p>
+                {% if form.description.errors %}<ul class="form-errors">{% for err in form.description.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'expense_list' %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="ph-bold ph-check"></i> Save Expense
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
