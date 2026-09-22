@@ -26,7 +26,7 @@
             <p style="font-size: 13px; color: var(--text-secondary);">Shop Management System</p>
         </div>
         <div style="text-align: right;">
-            <span class="badge {% if purchase.payment_status == 'Paid' %}badge-success{% else %}badge-warning{% endif %}" style="font-size: 13px; padding: 5px 12px;">
+            <span class="badge {% if purchase.payment_status == 'Paid' %}badge-success{% elif purchase.payment_status == 'Partial' %}badge-info{% else %}badge-warning{% endif %}" style="font-size: 13px; padding: 5px 12px;">
                 {{ purchase.payment_status }}
             </span>
             <div style="font-size: 14px; font-weight: 600; margin-top: 6px; color: var(--text-primary);">
@@ -88,9 +88,24 @@
     <div class="totals-summary">
         <table class="totals-table">
             <tr class="grand-total">
-                <td>Total Paid / Payable:</td>
+                <td>Total Order Amount:</td>
                 <td style="text-align: right;">${{ purchase.total_amount }}</td>
             </tr>
+            {% if purchase.payment_status == 'Partial' %}
+            <tr>
+                <td style="font-size: 13.5px; color: var(--text-secondary); padding-top: 6px;">Amount Paid:</td>
+                <td style="text-align: right; font-size: 14px; font-weight: 600; color: var(--success-text); padding-top: 6px;">${{ purchase.paid_amount }}</td>
+            </tr>
+            <tr>
+                <td style="font-size: 13.5px; color: var(--text-secondary); padding-top: 4px;">Balance Due / Unpaid:</td>
+                <td style="text-align: right; font-size: 14.5px; font-weight: 700; color: var(--warning-text); padding-top: 4px;">${{ purchase.due_amount }}</td>
+            </tr>
+            {% elif purchase.payment_status == 'Pending' %}
+            <tr>
+                <td style="font-size: 13.5px; color: var(--text-secondary); padding-top: 4px;">Balance Due / Unpaid:</td>
+                <td style="text-align: right; font-size: 14.5px; font-weight: 700; color: var(--warning-text); padding-top: 4px;">${{ purchase.total_amount }}</td>
+            </tr>
+            {% endif %}
         </table>
     </div>
 

@@ -1213,3 +1213,165 @@ textarea.form-control {
     margin-bottom: 26px;
     font-size: 14px;
 }
+
+/* ==========================================================================
+   Searchable Combobox (Supplier Selection) & Payment Enhancements
+   ========================================================================== */
+.combobox-container {
+    position: relative;
+    width: 100%;
+}
+
+.combobox-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.combobox-search-wrap i.combobox-icon {
+    position: absolute;
+    left: 12px;
+    font-size: 17px;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.combobox-input {
+    padding-left: 38px !important;
+    padding-right: 36px !important;
+}
+
+.combobox-clear-btn {
+    position: absolute;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.15s;
+}
+
+.combobox-clear-btn:hover {
+    color: var(--danger-text);
+    background-color: var(--danger-bg);
+}
+
+.combobox-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.combobox-list {
+    list-style: none;
+    padding: 4px 0;
+    margin: 0;
+}
+
+.combobox-item {
+    padding: 9px 14px;
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.combobox-item:last-child {
+    border-bottom: none;
+}
+
+.combobox-item:hover,
+.combobox-item.is-focused {
+    background-color: #f0f7fd;
+}
+
+.combobox-item.selected {
+    background-color: var(--accent-blue-light);
+}
+
+.combobox-item-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.combobox-item-meta {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    display: flex;
+    gap: 10px;
+}
+
+.combobox-empty {
+    padding: 14px 16px;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+}
+
+.combobox-selected-badge {
+    margin-top: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    background-color: #f0f7fd;
+    border: 1px solid #c9e0f3;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--text-primary);
+}
+
+.combobox-selected-badge strong {
+    color: var(--accent-blue);
+}
+
+/* Partial Payment Highlighting */
+.partial-payment-highlight {
+    background: #fbfcfe;
+    border: 1px dashed var(--accent-blue);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-top: 6px;
+    transition: all 0.2s ease;
+}
+
+.balance-due-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-top: 6px;
+}
+
+.balance-due-pill.has-due {
+    background-color: var(--warning-bg);
+    color: var(--warning-text);
+    border: 1px solid var(--warning-border);
+}
+
+.balance-due-pill.zero-due {
+    background-color: var(--success-bg);
+    color: var(--success-text);
+    border: 1px solid var(--success-border);
+}
+

@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from django.db import models
 from django.utils import timezone
 
@@ -70,6 +71,7 @@ class Supplier(models.Model):
 class Purchase(models.Model):
     PAYMENT_STATUS_CHOICES = [
         ('Paid', 'Paid'),
+        ('Partial', 'Partial'),
         ('Pending', 'Pending'),
     ]
 
@@ -77,14 +79,28 @@ class Purchase(models.Model):
     invoice_number = models.CharField(max_length=50, blank=True, null=True)
     date = models.DateField(default=timezone.now)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='Paid')
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now, blank=True)
 
+    @property
+    def due_amount(self):
+        return max(Decimal('0.00'), (self.total_amount or Decimal('0.00')) - (self.paid_amount or Decimal('0.00')))
+
+    def save(self, *args, **kwargs):
+        if self.paid_amount is None:
+            self.paid_amount = Decimal('0.00')
+        super().save(*args, **kwargs)
+
     def calculate_total(self):
         total = sum(item.subtotal for item in self.items.all())
         self.total_amount = total
-        self.save(update_fields=['total_amount'])
+        if self.payment_status == 'Paid':
+            self.paid_amount = total
+        elif self.payment_status == 'Pending':
+            self.paid_amount = Decimal('0.00')
+        self.save(update_fields=['total_amount', 'paid_amount'])
         return total
 
     def __str__(self):

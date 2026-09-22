@@ -65,6 +65,7 @@ class PurchaseCreateView(LoginRequiredMixin, CreateView):
         else:
             context['items_formset'] = PurchaseItemFormSet()
         context['products'] = Product.objects.all()
+        context['suppliers'] = Supplier.objects.all().order_by('name')
         return context
 
     def form_valid(self, form):
