@@ -10,6 +10,8 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -40,7 +42,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{% url 'stock_list' %}" class="nav-item {% if request.resolver_match.url_name == 'stock_list' %}active{% endif %}">
+                    <a href="{% url 'stock_list' %}" class="nav-item {% if 'stock' in request.resolver_match.url_name %}active{% endif %}">
                         <i class="ph ph-cube"></i> Stock
                     </a>
                 </li>
@@ -72,7 +74,7 @@
             <div class="nav-title">CATALOG</div>
             <ul class="nav-list">
                 <li>
-                    <a href="{% url 'product_list' %}" class="nav-item {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_create' or request.resolver_match.url_name == 'product_update' %}active{% endif %}">
+                    <a href="{% url 'product_list' %}" class="nav-item {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
                         <i class="ph ph-box-arrow-up"></i> Products
                     </a>
                 </li>
@@ -99,9 +101,14 @@
     <main class="main-content">
         <!-- Topbar -->
         <header class="topbar">
-            <div class="greeting">
-                <h2>Good day, {% if user.is_authenticated %}{{ user.username|title }}{% else %}Owner{% endif %}</h2>
-                <p>Cover Land Retail & Shop Operations</p>
+            <div style="display: flex; align-items: center;">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="ph ph-list"></i>
+                </button>
+                <div class="greeting">
+                    <h2>Good day, {% if user.is_authenticated %}{{ user.username|title }}{% else %}Owner{% endif %}</h2>
+                    <p>Cover Land Retail & Shop Operations</p>
+                </div>
             </div>
             <div class="user-info">
                 <div class="date-badge">
@@ -136,6 +143,21 @@
         if (dateElement) {
             const options = { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' };
             dateElement.textContent = new Date().toLocaleDateString('en-GB', options);
+        }
+
+        // Mobile Sidebar Toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        if (menuToggle && sidebar && sidebarOverlay) {
+            function toggleSidebar() {
+                sidebar.classList.toggle('active');
+                sidebarOverlay.classList.toggle('active');
+            }
+
+            menuToggle.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', toggleSidebar);
         }
     </script>
     {% block extra_js %}{% endblock %}

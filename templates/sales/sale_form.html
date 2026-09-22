@@ -76,6 +76,12 @@
 
         {{ items_formset.management_form }}
 
+        {% if items_formset.non_form_errors %}
+        <div class="alert alert-danger" style="margin: 0 24px 20px 24px;">
+            {{ items_formset.non_form_errors }}
+        </div>
+        {% endif %}
+
         <div class="table-responsive">
             <table class="items-table" id="items-table">
                 <thead>
@@ -252,6 +258,8 @@
 
         const stockInfo = newRow.querySelector('.stock-info');
         if (stockInfo) stockInfo.innerHTML = '';
+
+        newRow.querySelectorAll('.form-errors').forEach(el => el.remove());
 
         tbody.appendChild(newRow);
         totalFormsInput.value = formCount + 1;
