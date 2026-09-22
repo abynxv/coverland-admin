@@ -32,9 +32,30 @@
         </div>
         <div class="card-body">
             <div class="form-grid">
+                <!-- Searchable Supplier Selector -->
                 <div class="form-group">
                     <label class="form-label" for="{{ form.supplier.id_for_label }}">Supplier / Vendor <span class="required">*</span></label>
-                    {{ form.supplier }}
+                    <div class="combobox-container" id="supplier-combobox-container">
+                        <!-- Native select is preserved for standard Django form binding and validation -->
+                        <div style="display: none;">
+                            {{ form.supplier }}
+                        </div>
+                        <div class="combobox-search-wrap">
+                            <i class="ph ph-magnifying-glass combobox-icon"></i>
+                            <input type="text" id="supplier-search-input" class="form-control combobox-input" placeholder="Search supplier by name, phone..." autocomplete="off">
+                            <button type="button" class="combobox-clear-btn" id="supplier-clear-btn" title="Clear selection" style="display: none;">
+                                <i class="ph ph-x"></i>
+                            </button>
+                        </div>
+                        <div class="combobox-dropdown" id="supplier-dropdown" style="display: none;">
+                            <ul class="combobox-list" id="supplier-options-list"></ul>
+                        </div>
+                        <div id="supplier-selected-badge" class="combobox-selected-badge" style="display: none;">
+                            <i class="ph-bold ph-check-circle" style="color: var(--success-text);"></i>
+                            <span>Selected: <strong id="supplier-selected-name"></strong></span>
+                            <span id="supplier-selected-meta" style="color: var(--text-secondary); font-size: 11.5px;"></span>
+                        </div>
+                    </div>
                     {% if form.supplier.errors %}<ul class="form-errors">{% for err in form.supplier.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
                 </div>
 
@@ -54,6 +75,20 @@
                     <label class="form-label" for="{{ form.payment_status.id_for_label }}">Payment Status <span class="required">*</span></label>
                     {{ form.payment_status }}
                     {% if form.payment_status.errors %}<ul class="form-errors">{% for err in form.payment_status.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+
+                    <!-- Partial Payment Amount Input -->
+                    <div id="paid-amount-group" class="partial-payment-highlight" style="{% if form.payment_status.value != 'Partial' %}display: none;{% endif %} margin-top: 10px;">
+                        <label class="form-label" for="{{ form.paid_amount.id_for_label }}" style="margin-bottom: 4px;">
+                            Amount Paid So Far ($) <span class="required">*</span>
+                        </label>
+                        {{ form.paid_amount }}
+                        <div id="balance-due-container">
+                            <span class="balance-due-pill has-due" id="balance-due-pill">
+                                <i class="ph ph-info"></i> Balance Due: <span id="balance-due-display">$0.00</span>
+                            </span>
+                        </div>
+                        {% if form.paid_amount.errors %}<ul class="form-errors">{% for err in form.paid_amount.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
                 </div>
 
                 <div class="form-group form-col-full">
@@ -131,6 +166,14 @@
                     <td>Total Purchase Amount:</td>
                     <td style="text-align: right;" id="grand-total-display">$0.00</td>
                 </tr>
+                <tr id="summary-paid-row" style="display: none;">
+                    <td style="font-size: 13.5px; color: var(--text-secondary); padding-top: 6px;">Amount Paid:</td>
+                    <td style="text-align: right; font-size: 14px; font-weight: 600; color: var(--success-text); padding-top: 6px;" id="summary-paid-display">$0.00</td>
+                </tr>
+                <tr id="summary-due-row" style="display: none;">
+                    <td style="font-size: 13.5px; color: var(--text-secondary); padding-top: 4px;">Balance Due / Unpaid:</td>
+                    <td style="text-align: right; font-size: 14.5px; font-weight: 700; color: var(--warning-text); padding-top: 4px;" id="summary-due-display">$0.00</td>
+                </tr>
             </table>
         </div>
     </div>
@@ -151,6 +194,196 @@
         {% endfor %}
     };
 
+    // Suppliers list for searchable selection
+    const suppliersData = [
+        {% for s in suppliers %}
+        {
+            id: "{{ s.id }}",
+            name: "{{ s.name|escapejs }}",
+            phone: "{{ s.phone|default:''|escapejs }}",
+            email: "{{ s.email|default:''|escapejs }}"
+        },
+        {% endfor %}
+    ];
+
+    // ==========================================
+    // Searchable Supplier Combobox Implementation
+    // ==========================================
+    (function initSupplierCombobox() {
+        const nativeSelect = document.getElementById('{{ form.supplier.id_for_label }}');
+        const searchInput = document.getElementById('supplier-search-input');
+        const clearBtn = document.getElementById('supplier-clear-btn');
+        const dropdown = document.getElementById('supplier-dropdown');
+        const list = document.getElementById('supplier-options-list');
+        const selectedBadge = document.getElementById('supplier-selected-badge');
+        const selectedName = document.getElementById('supplier-selected-name');
+        const selectedMeta = document.getElementById('supplier-selected-meta');
+
+        let focusedIndex = -1;
+        let currentMatches = [];
+
+        function renderList(query = '') {
+            list.innerHTML = '';
+            const q = query.trim().toLowerCase();
+            currentMatches = suppliersData.filter(s => {
+                return s.name.toLowerCase().includes(q) ||
+                       s.phone.toLowerCase().includes(q) ||
+                       s.email.toLowerCase().includes(q);
+            });
+
+            if (currentMatches.length === 0) {
+                const emptyItem = document.createElement('div');
+                emptyItem.className = 'combobox-empty';
+                emptyItem.innerHTML = `No suppliers found matching "<strong>${escapeHtml(query)}</strong>". <a href="{% url 'supplier_create' %}" target="_blank" style="color: var(--accent-blue); text-decoration: underline; font-weight: 600;">+ Add New Supplier</a>`;
+                list.appendChild(emptyItem);
+            } else {
+                currentMatches.forEach((sup, idx) => {
+                    const li = document.createElement('li');
+                    li.className = 'combobox-item' + (nativeSelect.value == sup.id ? ' selected' : '');
+                    li.dataset.index = idx;
+
+                    const nameEl = document.createElement('div');
+                    nameEl.className = 'combobox-item-name';
+                    nameEl.textContent = sup.name;
+
+                    const metaEl = document.createElement('div');
+                    metaEl.className = 'combobox-item-meta';
+                    let metaText = [];
+                    if (sup.phone) metaText.push(`📞 ${sup.phone}`);
+                    if (sup.email) metaText.push(`✉️ ${sup.email}`);
+                    metaEl.textContent = metaText.join('  •  ');
+
+                    li.appendChild(nameEl);
+                    if (metaText.length > 0) li.appendChild(metaEl);
+
+                    li.addEventListener('mousedown', (e) => {
+                        e.preventDefault(); // prevent blur before click
+                        selectSupplier(sup);
+                    });
+
+                    list.appendChild(li);
+                });
+            }
+            focusedIndex = -1;
+        }
+
+        function selectSupplier(supplier) {
+            nativeSelect.value = supplier.id;
+            searchInput.value = supplier.name;
+            selectedName.textContent = supplier.name;
+            let metaArr = [];
+            if (supplier.phone) metaArr.push(`Phone: ${supplier.phone}`);
+            if (supplier.email) metaArr.push(`Email: ${supplier.email}`);
+            selectedMeta.textContent = metaArr.length > 0 ? `(${metaArr.join(', ')})` : '';
+
+            selectedBadge.style.display = 'inline-flex';
+            clearBtn.style.display = 'flex';
+            dropdown.style.display = 'none';
+
+            // trigger change event on native select
+            nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        function clearSelection() {
+            nativeSelect.value = '';
+            searchInput.value = '';
+            selectedBadge.style.display = 'none';
+            clearBtn.style.display = 'none';
+            renderList('');
+            dropdown.style.display = 'block';
+            searchInput.focus();
+            nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        searchInput.addEventListener('focus', () => {
+            renderList(searchInput.value);
+            dropdown.style.display = 'block';
+        });
+
+        searchInput.addEventListener('input', () => {
+            renderList(searchInput.value);
+            dropdown.style.display = 'block';
+        });
+
+        clearBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            clearSelection();
+        });
+
+        // Keyboard navigation
+        searchInput.addEventListener('keydown', (e) => {
+            const items = list.querySelectorAll('.combobox-item');
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (dropdown.style.display === 'none') {
+                    dropdown.style.display = 'block';
+                }
+                if (items.length > 0) {
+                    focusedIndex = (focusedIndex + 1) % items.length;
+                    highlightItem(items);
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (items.length > 0) {
+                    focusedIndex = (focusedIndex - 1 + items.length) % items.length;
+                    highlightItem(items);
+                }
+            } else if (e.key === 'Enter') {
+                if (dropdown.style.display !== 'none' && focusedIndex >= 0 && currentMatches[focusedIndex]) {
+                    e.preventDefault();
+                    selectSupplier(currentMatches[focusedIndex]);
+                }
+            } else if (e.key === 'Escape') {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        function highlightItem(items) {
+            items.forEach((item, idx) => {
+                if (idx === focusedIndex) {
+                    item.classList.add('is-focused');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('is-focused');
+                }
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            const container = document.getElementById('supplier-combobox-container');
+            if (container && !container.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Initialize state if supplier is pre-selected (e.g. form reload with errors)
+        if (nativeSelect.value) {
+            const pre = suppliersData.find(s => s.id == nativeSelect.value);
+            if (pre) {
+                selectSupplier(pre);
+            }
+        }
+    })();
+
+    // ==========================================
+    // Totals Calculation & Payment Status Logic
+    // ==========================================
+    const statusSelect = document.getElementById('{{ form.payment_status.id_for_label }}');
+    const paidAmountGroup = document.getElementById('paid-amount-group');
+    const paidAmountInput = document.getElementById('{{ form.paid_amount.id_for_label }}');
+    const balanceDueDisplay = document.getElementById('balance-due-display');
+    const balanceDuePill = document.getElementById('balance-due-pill');
+    const summaryPaidRow = document.getElementById('summary-paid-row');
+    const summaryPaidDisplay = document.getElementById('summary-paid-display');
+    const summaryDueRow = document.getElementById('summary-due-row');
+    const summaryDueDisplay = document.getElementById('summary-due-display');
+
     function recalculateTotals() {
         let grandTotal = 0;
         document.querySelectorAll('#items-tbody .item-row').forEach(row => {
@@ -165,6 +398,61 @@
             grandTotal += subtotal;
         });
         document.getElementById('grand-total-display').textContent = '$' + grandTotal.toFixed(2);
+
+        // Handle Payment Status and Paid Amount
+        const currentStatus = statusSelect.value;
+        if (currentStatus === 'Paid') {
+            paidAmountGroup.style.display = 'none';
+            if (paidAmountInput) paidAmountInput.value = grandTotal.toFixed(2);
+            summaryPaidRow.style.display = 'none';
+            summaryDueRow.style.display = 'none';
+        } else if (currentStatus === 'Pending') {
+            paidAmountGroup.style.display = 'none';
+            if (paidAmountInput) paidAmountInput.value = '0.00';
+            summaryPaidRow.style.display = 'none';
+            summaryDueRow.style.display = '';
+            summaryDueDisplay.textContent = '$' + grandTotal.toFixed(2);
+        } else if (currentStatus === 'Partial') {
+            paidAmountGroup.style.display = '';
+            let paidVal = parseFloat(paidAmountInput ? paidAmountInput.value : 0) || 0;
+            let dueVal = Math.max(0, grandTotal - paidVal);
+
+            if (balanceDueDisplay) {
+                balanceDueDisplay.textContent = '$' + dueVal.toFixed(2);
+            }
+            if (balanceDuePill) {
+                if (dueVal > 0) {
+                    balanceDuePill.className = 'balance-due-pill has-due';
+                } else {
+                    balanceDuePill.className = 'balance-due-pill zero-due';
+                }
+            }
+            summaryPaidRow.style.display = '';
+            summaryPaidDisplay.textContent = '$' + paidVal.toFixed(2);
+            summaryDueRow.style.display = '';
+            summaryDueDisplay.textContent = '$' + dueVal.toFixed(2);
+        }
+    }
+
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            if (this.value === 'Partial') {
+                paidAmountGroup.style.display = '';
+                if (paidAmountInput) {
+                    // If switching to partial and value equals grand total, prompt or clear
+                    const grandTotal = parseFloat(document.getElementById('grand-total-display').textContent.replace('$', '')) || 0;
+                    if (parseFloat(paidAmountInput.value) === grandTotal || !paidAmountInput.value || paidAmountInput.value === '0.00') {
+                        paidAmountInput.value = '';
+                    }
+                    paidAmountInput.focus();
+                }
+            }
+            recalculateTotals();
+        });
+    }
+
+    if (paidAmountInput) {
+        paidAmountInput.addEventListener('input', recalculateTotals);
     }
 
     function setupRowListeners(row) {

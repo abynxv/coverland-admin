@@ -9,9 +9,10 @@ class PurchaseItemInline(admin.TabularInline):
 
 @admin.register(Purchase)
 class PurchaseAdmin(admin.ModelAdmin):
-    list_display = ('id', 'supplier', 'invoice_number', 'date', 'total_amount', 'payment_status')
+    list_display = ('id', 'supplier', 'invoice_number', 'date', 'total_amount', 'paid_amount', 'payment_status')
     list_filter = ('payment_status', 'date')
     search_fields = ('invoice_number', 'supplier__name')
+    autocomplete_fields = ['supplier']
     inlines = [PurchaseItemInline]
 
 
