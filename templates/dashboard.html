@@ -44,7 +44,7 @@
         </div>
         <div class="stat-info">
             <div class="stat-label">Net Financial Flow</div>
-            <div class="stat-value" {% if estimated_margin < 0 %}style="color: var(--danger-text);"{% endif %}>
+            <div class="stat-value" style="color: {% if estimated_margin < 0 %}var(--danger-text){% else %}var(--success-text){% endif %};">
                 ${{ estimated_margin }}
             </div>
             <div class="stat-subtext">Sales - (Procurement + Expenses)</div>
@@ -52,7 +52,7 @@
     </div>
 </div>
 
-<div class="section-title">DAILY OPERATIONS</div>
+<div class="section-title" style="margin-top: 32px;">DAILY OPERATIONS</div>
 <h2 class="section-heading">What would you like to do?</h2>
 
 <div class="cards-grid">
@@ -142,7 +142,7 @@
 </div>
 
 <!-- Lower Grid: Low Stock Alert & Recent Transactions -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
     <!-- Alerts Section -->
     <div class="alerts-section">
         <div class="alerts-header">

@@ -26,7 +26,7 @@
     {% endif %}
 
     <!-- Purchase Header Details -->
-    <div class="card">
+    <div class="card card-overflow-visible">
         <div class="card-header">
             <h3 class="card-title">1. Supplier & Invoice Details</h3>
         </div>
@@ -115,6 +115,12 @@
         </div>
 
         {{ items_formset.management_form }}
+
+        {% if items_formset.non_form_errors %}
+        <div class="alert alert-danger" style="margin: 0 24px 20px 24px;">
+            {{ items_formset.non_form_errors }}
+        </div>
+        {% endif %}
 
         <div class="table-responsive">
             <table class="items-table" id="items-table">
@@ -464,7 +470,7 @@
 
         if (prodSelect) {
             prodSelect.addEventListener('change', function() {
-                if (productPrices[this.value] !== undefined && (!priceInput.value || priceInput.value === '0.00' || priceInput.value === '0')) {
+                if (productPrices[this.value] !== undefined) {
                     priceInput.value = parseFloat(productPrices[this.value]).toFixed(2);
                 }
                 recalculateTotals();
@@ -517,6 +523,8 @@
                 else input.value = '';
             }
         });
+
+        newRow.querySelectorAll('.form-errors').forEach(el => el.remove());
 
         tbody.appendChild(newRow);
         totalFormsInput.value = formCount + 1;
