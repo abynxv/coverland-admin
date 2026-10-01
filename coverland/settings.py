@@ -26,6 +26,7 @@ SECRET_KEY = 'django-insecure-wlde#$s86fm!+i843tvud6faw99qb-dy6=ow5*4os8r*(#o4bn
 DEBUG = True
 
 ALLOWED_HOSTS = ['coverland-admin.onrender.com', "127.0.0.1", '.up.railway.app', 'coverland-admin-production-a203.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://coverland-admin.onrender.com', 'https://*.up.railway.app', 'https://coverland-admin-production-a203.up.railway.app']
 
 
 # Application definition
