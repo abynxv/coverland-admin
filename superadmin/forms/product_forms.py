@@ -13,7 +13,16 @@ class ProductForm(forms.ModelForm):
             'selling_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'stock_quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
             'reorder_level': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
-            'unit': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'pcs, pack, box'}),
+            'unit': forms.Select(
+                choices=[
+                    ('pcs', 'pcs'),
+                    ('pack', 'pack'),
+                    ('meter', 'meter'),
+                    ('set', 'set'),
+                    ('bundle', 'bundle'),
+                ],
+                attrs={'class': 'form-select'}
+            ),
         }
 
 

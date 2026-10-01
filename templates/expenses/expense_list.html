@@ -23,7 +23,7 @@
         </div>
         <div class="stat-info">
             <div class="stat-label">Filtered Expenses Sum</div>
-            <div class="stat-value">${{ total_expense_amount }}</div>
+            <div class="stat-value">₹{{ total_expense_amount }}</div>
             <div class="stat-subtext">Total cash out for matching entries</div>
         </div>
     </div>
@@ -34,10 +34,18 @@
         <i class="ph ph-magnifying-glass"></i>
         <input type="text" name="q" value="{{ search_query }}" placeholder="Search expense title or description...">
         {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+        {% if start_date %}<input type="hidden" name="start_date" value="{{ start_date }}">{% endif %}
+        {% if end_date %}<input type="hidden" name="end_date" value="{{ end_date }}">{% endif %}
     </form>
 
     <form method="get" class="filter-group">
         {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="date" name="start_date" value="{{ start_date }}" class="filter-select" onchange="this.form.submit()">
+            <span style="color: var(--text-secondary); font-size: 13px;">to</span>
+            <input type="date" name="end_date" value="{{ end_date }}" class="filter-select" onchange="this.form.submit()">
+        </div>
 
         <select name="category" class="filter-select" onchange="this.form.submit()">
             <option value="">All Categories</option>
@@ -46,7 +54,7 @@
             {% endfor %}
         </select>
 
-        {% if search_query or selected_category %}
+        {% if search_query or selected_category or start_date or end_date %}
             <a href="{% url 'expense_list' %}" class="btn btn-secondary btn-sm">
                 <i class="ph ph-arrow-counter-clockwise"></i> Reset
             </a>
@@ -78,7 +86,7 @@
                         <span class="badge badge-neutral">{{ expense.get_category_display }}</span>
                     </td>
                     <td>
-                        <strong style="font-size: 15px; color: var(--danger-text);">${{ expense.amount }}</strong>
+                        <strong style="font-size: 15px; color: var(--danger-text);">₹{{ expense.amount }}</strong>
                     </td>
                     <td>
                         <span style="color: var(--text-secondary);">

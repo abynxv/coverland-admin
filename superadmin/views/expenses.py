@@ -19,11 +19,17 @@ class ExpenseListView(LoginRequiredMixin, ListView):
         qs = Expense.objects.order_by('-date', '-id')
         query = self.request.GET.get('q', '').strip()
         cat = self.request.GET.get('category')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
 
         if query:
             qs = qs.filter(Q(title__icontains=query) | Q(description__icontains=query))
         if cat:
             qs = qs.filter(category=cat)
+        if start_date:
+            qs = qs.filter(date__gte=start_date)
+        if end_date:
+            qs = qs.filter(date__lte=end_date)
 
         return qs
 
@@ -34,6 +40,8 @@ class ExpenseListView(LoginRequiredMixin, ListView):
         context['categories'] = Expense.EXPENSE_CATEGORIES
         context['search_query'] = self.request.GET.get('q', '')
         context['selected_category'] = self.request.GET.get('category', '')
+        context['start_date'] = self.request.GET.get('start_date', '')
+        context['end_date'] = self.request.GET.get('end_date', '')
         return context
 
 
