@@ -308,6 +308,9 @@
     }
 
     @media print {
+        @page {
+            margin: 10mm;
+        }
         body, .main-content, .dashboard-container {
             background: white !important;
             padding: 0 !important;
@@ -316,46 +319,58 @@
         .sidebar, .topbar, .page-header, .btn-print, .public-actions {
             display: none !important;
         }
-        .invoice-card {
-            box-shadow: none !important;
-            border: none !important;
-            margin-bottom: 0 !important;
-        }
-        .top-card {
-            padding: 16px 0 !important;
-            flex-wrap: nowrap !important;
-        }
-        .bottom-card {
-            padding: 16px 0 !important;
-        }
-        .invoice-redesign * {
-            box-sizing: border-box !important;
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
         }
         .invoice-redesign {
             max-width: 100% !important;
+            margin: 0 auto;
         }
         .top-card {
             display: flex !important;
             flex-direction: row !important;
             flex-wrap: nowrap !important;
-            padding: 0 !important;
+            padding: 12px 0 !important;
         }
-        .header-left { width: 33% !important; flex: 0 0 33% !important; border-right: 1px solid #ccc !important; padding: 0 10px 0 0 !important; }
-        .header-middle { width: 33% !important; flex: 0 0 33% !important; border-right: 1px solid #ccc !important; padding: 0 10px !important; display: flex !important; align-items: flex-start !important; }
-        .header-right { width: 33% !important; flex: 0 0 33% !important; padding: 0 0 0 10px !important; }
-        .top-card::after { display: none; }
+        .header-left {
+            flex: 0 0 33% !important;
+            width: 33% !important;
+            border-right: 1px solid #e2e8f0 !important;
+            border-bottom: none !important;
+            padding: 0 12px 0 0 !important;
+            margin: 0 !important;
+            word-wrap: break-word !important;
+        }
+        .header-middle {
+            flex: 0 0 34% !important;
+            width: 34% !important;
+            border-right: 1px solid #e2e8f0 !important;
+            border-bottom: none !important;
+            padding: 0 12px !important;
+            margin: 0 !important;
+            display: flex !important;
+            align-items: flex-start !important;
+            word-wrap: break-word !important;
+        }
+        .header-right {
+            flex: 0 0 33% !important;
+            width: 33% !important;
+            padding: 0 0 0 12px !important;
+            align-items: flex-end !important;
+            text-align: right !important;
+            word-wrap: break-word !important;
+        }
+        .bottom-card {
+            padding: 12px 0 !important;
+        }
         .grand-total-row {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-            background: #f0f9ff !important;
+            padding: 16px 12px !important;
+            margin: 0 !important;
         }
-        .status-badge {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-        .new-invoice-table th {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+        .footer-thanks {
+            margin: 0 !important;
         }
     }
 </style>
@@ -385,9 +400,24 @@
                         {% if sale.customer %}{{ sale.customer.name }}{% else %}Walk-in Customer{% endif %}
                     </h3>
                     {% if sale.customer %}
-                        {% if sale.customer.phone %}<div style="font-size: 13px; color: #475569; margin-top: 4px;"><i class="ph-fill ph-phone" style="color: #94a3b8; margin-right: 4px; vertical-align: middle;"></i> {{ sale.customer.phone }}</div>{% endif %}
-                        {% if sale.customer.email %}<div style="font-size: 13px; color: #475569; margin-top: 2px;"><i class="ph-fill ph-envelope-simple" style="color: #94a3b8; margin-right: 4px; vertical-align: middle;"></i> {{ sale.customer.email }}</div>{% endif %}
-                        {% if sale.customer.address %}<div style="font-size: 13px; color: #475569; margin-top: 2px;"><i class="ph-fill ph-map-pin" style="color: #94a3b8; margin-right: 4px; vertical-align: middle;"></i> {{ sale.customer.address }}</div>{% endif %}
+                        {% if sale.customer.phone %}
+                            <div style="font-size: 13px; color: #475569; margin-top: 6px; display: flex; align-items: center; gap: 6px;">
+                                <i class="ph-fill ph-phone" style="color: #94a3b8; font-size: 14px;"></i> 
+                                <span>{{ sale.customer.phone }}</span>
+                            </div>
+                        {% endif %}
+                        {% if sale.customer.email %}
+                            <div style="font-size: 13px; color: #475569; margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+                                <i class="ph-fill ph-envelope-simple" style="color: #94a3b8; font-size: 14px;"></i> 
+                                <span style="word-break: break-all;">{{ sale.customer.email }}</span>
+                            </div>
+                        {% endif %}
+                        {% if sale.customer.address %}
+                            <div style="font-size: 13px; color: #475569; margin-top: 4px; display: flex; align-items: flex-start; gap: 6px; line-height: 1.4;">
+                                <i class="ph-fill ph-map-pin" style="color: #94a3b8; font-size: 14px; margin-top: 2px;"></i> 
+                                <span>{{ sale.customer.address|linebreaksbr }}</span>
+                            </div>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
