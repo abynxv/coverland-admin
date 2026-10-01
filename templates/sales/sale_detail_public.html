@@ -1,0 +1,447 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice {{ sale.invoice_number }} - Cover Land</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            background-color: #f0f8ff;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        
+        /* Invoice Redesign CSS */
+        .invoice-redesign {
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+        }
+        
+        .invoice-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        /* Top Card */
+        .top-card {
+            display: flex;
+            flex-wrap: nowrap;
+            padding: 24px 32px;
+            position: relative;
+            gap: 0;
+        }
+        .top-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle at bottom right, #e0f2fe 0%, transparent 70%);
+            border-radius: 12px 0 0 0;
+            pointer-events: none;
+        }
+        
+        .header-left {
+            flex: 1.2;
+            display: flex;
+            gap: 16px;
+            min-width: 0;
+            border-right: 1px solid #e2e8f0;
+            padding-right: 24px;
+        }
+        .header-middle {
+            flex: 1;
+            padding: 0 24px;
+            min-width: 0;
+            border-right: 1px solid #e2e8f0;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+        }
+        .logo-area {
+            width: 70px;
+            height: 70px;
+            background: #1e3a8a;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 9px;
+            text-align: center;
+            flex-shrink: 0;
+            transform: rotate(-3deg);
+            box-shadow: 2px 3px 8px rgba(0,0,0,0.1);
+        }
+        .company-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1e3a8a;
+            margin: 0 0 4px 0;
+            letter-spacing: -0.5px;
+        }
+        .tagline {
+            font-size: 12px;
+            color: #475569;
+            margin: 0 0 12px 0;
+        }
+        .address, .phone {
+            font-size: 12px;
+            color: #334155;
+            margin: 0 0 6px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            line-height: 1.4;
+        }
+        .phone {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 8px;
+            align-items: center;
+        }
+        .phone i { font-size: 16px; color: #1e3a8a; }
+        .address i { font-size: 16px; color: #1e3a8a; margin-top: 1px; }
+
+        .header-right {
+            flex: 1;
+            padding-left: 24px;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1;
+            min-width: 0;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .status-badge.paid { background: #dcfce7; color: #166534; }
+        .status-badge.partial { background: #e0f2fe; color: #075985; }
+        .status-badge.pending { background: #fee2e2; color: #991b1b; }
+        
+        .invoice-num {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin: 0 0 12px 0;
+        }
+        .inv-meta {
+            font-size: 13px;
+            color: #475569;
+            margin: 0 0 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+        .inv-meta i { font-size: 16px; color: #94a3b8; }
+
+        /* Bottom Card */
+        .bottom-card {
+            padding: 32px;
+            padding-bottom: 0;
+        }
+        .customer-section {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 0;
+            width: 100%;
+        }
+        .customer-icon {
+            font-size: 24px;
+            color: #1e3a8a;
+            margin-top: 2px;
+        }
+        .billed-to-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .customer-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        /* Table */
+        .new-invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0;
+        }
+        .new-invoice-table th {
+            background: #f8fafc;
+            padding: 14px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        .new-invoice-table td {
+            padding: 16px;
+            font-size: 14px;
+            border-bottom: 1px solid #f8fafc;
+            color: #334155;
+        }
+        .new-invoice-table .cat {
+            font-size: 12px;
+            color: #94a3b8;
+            display: block;
+            margin-top: 4px;
+        }
+        
+        .grand-total-row {
+            background: #f0f9ff;
+            padding: 24px 32px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 32px;
+            margin: 0 -32px;
+        }
+        .gt-label {
+            font-size: 18px;
+            font-weight: 500;
+            color: #0284c7;
+        }
+        .gt-amount {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0369a1;
+        }
+
+        .footer-thanks {
+            text-align: center;
+            padding: 24px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            color: #64748b;
+            font-size: 13px;
+            margin: 0 -32px;
+        }
+        .footer-thanks .line {
+            flex: 1;
+            max-width: 100px;
+            height: 1px;
+            background: #e2e8f0;
+            border: none;
+        }
+
+        /* Print & Responsive */
+        @media (max-width: 768px) {
+            .top-card {
+                flex-wrap: wrap;
+            }
+            .header-left, .header-middle {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+                padding-right: 0;
+                padding-bottom: 24px;
+                margin-bottom: 24px;
+                padding-left: 0;
+                min-width: 100%;
+            }
+            .header-right {
+                width: 100%;
+                padding-left: 0;
+                align-items: flex-start;
+                text-align: left;
+            }
+            .inv-meta {
+                justify-content: flex-start;
+            }
+            .new-invoice-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            .grand-total-row {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
+
+        @media print {
+            body {
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .btn-print, .public-actions {
+                display: none !important;
+            }
+            .invoice-card {
+                box-shadow: none !important;
+                border: none !important;
+                margin-bottom: 0 !important;
+            }
+            .top-card {
+                padding: 16px 0 !important;
+                flex-wrap: nowrap !important;
+            }
+            .bottom-card {
+                padding: 16px 0 !important;
+            }
+            .invoice-redesign * {
+                box-sizing: border-box !important;
+            }
+            .invoice-redesign {
+                max-width: 100% !important;
+            }
+            .top-card {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                padding: 0 !important;
+            }
+            .header-left { width: 33% !important; flex: 0 0 33% !important; border-right: 1px solid #ccc !important; padding: 0 10px 0 0 !important; }
+            .header-middle { width: 33% !important; flex: 0 0 33% !important; border-right: 1px solid #ccc !important; padding: 0 10px !important; display: flex !important; align-items: flex-start !important; }
+            .header-right { width: 33% !important; flex: 0 0 33% !important; padding: 0 0 0 10px !important; }
+            .top-card::after { display: none; }
+            .grand-total-row {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                background: #f0f9ff !important;
+            }
+            .status-badge {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .new-invoice-table th {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-redesign">
+        <div class="invoice-card top-card">
+            <div class="header-left">
+                <div class="logo-area">
+                    <i class="ph ph-bag" style="font-size: 24px; margin-bottom: 2px;"></i>
+                    COVER LAND<br><span style="font-size: 7px; font-weight:normal;">Calicut</span>
+                </div>
+                <div class="company-details">
+                    <h1 class="company-title">COVER LAND</h1>
+                    <p class="tagline">Dealers In All types of Packing Materials</p>
+                    <p class="address"><i class="ph-fill ph-map-pin"></i> 
+                        <span>Markaz Building<br>Opp. Markaz Juma Masjid<br>New Bus Stand, Mavoor Road<br>Calicut – 673004</span>
+                    </p>
+                    <p class="phone"><i class="ph-fill ph-phone-call"></i> 9947318269</p>
+                </div>
+            </div>
+            <div class="header-middle">
+                <div class="customer-section">
+                    <i class="ph ph-user customer-icon"></i>
+                    <div>
+                        <span class="billed-to-label">BILLED TO</span>
+                        <h3 class="customer-name">
+                            {% if sale.customer %}{{ sale.customer.name }}{% else %}Walk-in Customer{% endif %}
+                        </h3>
+                        {% if sale.customer %}
+                            {% if sale.customer.phone %}<div style="font-size: 13px; color: #475569; margin-top: 4px;"><i class="ph-fill ph-phone" style="color: #94a3b8; margin-right: 4px; vertical-align: middle;"></i> {{ sale.customer.phone }}</div>{% endif %}
+                            {% if sale.customer.email %}<div style="font-size: 13px; color: #475569; margin-top: 2px;"><i class="ph-fill ph-envelope-simple" style="color: #94a3b8; margin-right: 4px; vertical-align: middle;"></i> {{ sale.customer.email }}</div>{% endif %}
+                            {% if sale.customer.address %}<div style="font-size: 13px; color: #475569; margin-top: 2px;"><i class="ph-fill ph-map-pin" style="color: #94a3b8; margin-right: 4px; vertical-align: middle;"></i> {{ sale.customer.address }}</div>{% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="status-badge {% if sale.payment_status == 'Paid' %}paid{% elif sale.payment_status == 'Partial' %}partial{% else %}pending{% endif %}">
+                    <i class="ph-fill ph-check-circle"></i> {{ sale.payment_status }}
+                </span>
+                <h2 class="invoice-num">{{ sale.invoice_number }}</h2>
+                <p class="inv-meta"><i class="ph ph-calendar-blank"></i> Date: {{ sale.date|date:"d M Y" }}</p>
+                <p class="inv-meta"><i class="ph ph-credit-card"></i> Mode: {{ sale.payment_method }}</p>
+            </div>
+        </div>
+
+        <div class="invoice-card bottom-card">
+
+            <div style="overflow-x: auto;">
+                <table class="new-invoice-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 45%;">ITEM DESCRIPTION</th>
+                            <th style="width: 15%; text-align: center;">QTY</th>
+                            <th style="width: 15%; text-align: right;">UNIT PRICE</th>
+                            <th style="width: 20%; text-align: right;">TOTAL AMOUNT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in sale.items.all %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <strong style="color: #0f172a;">{{ item.product.name }}</strong>
+                                <span class="cat">Category: {{ item.product.category.name }}</span>
+                            </td>
+                            <td style="text-align: center;">{{ item.quantity }}</td>
+                            <td style="text-align: right;">₹{{ item.unit_price }}</td>
+                            <td style="text-align: right; font-weight: 600; color: #0f172a;">₹{{ item.subtotal }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="grand-total-row">
+                <span class="gt-label">Grand Total:</span>
+                <span class="gt-amount">₹{{ sale.total_amount }}</span>
+            </div>
+
+            <div class="footer-thanks">
+                <hr class="line">
+                <span>Thank you for shopping with us! Have a great day.</span>
+                <hr class="line">
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 24px; margin-bottom: 40px;" class="btn-print">
+            <button onclick="window.print()" class="btn btn-primary" style="padding: 12px 24px; font-size: 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);">
+                <i class="ph-bold ph-printer"></i> Print / Save as PDF
+            </button>
+        </div>
+    </div>
+</body>
+</html>

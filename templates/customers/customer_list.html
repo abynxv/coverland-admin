@@ -48,7 +48,9 @@
                 {% for customer in customers %}
                 <tr>
                     <td>
-                        <strong style="color: var(--text-primary);">{{ customer.name }}</strong>
+                        <a href="{% url 'customer_detail' customer.pk %}" style="text-decoration: none;">
+                            <strong style="color: var(--text-primary);">{{ customer.name }}</strong>
+                        </a>
                     </td>
                     <td>{{ customer.phone|default:"—" }}</td>
                     <td>{{ customer.email|default:"—" }}</td>
@@ -61,9 +63,12 @@
                         <span class="badge badge-info">{{ customer.total_purchases_count }} bill(s)</span>
                     </td>
                     <td>
-                        <strong>${{ customer.total_spent|default:"0.00" }}</strong>
+                        <strong>₹{{ customer.total_spent|default:"0.00" }}</strong>
                     </td>
                     <td class="actions-cell">
+                        <a href="{% url 'customer_detail' customer.pk %}" class="btn btn-secondary btn-sm" title="View Customer Details">
+                            <i class="ph ph-eye"></i> View
+                        </a>
                         <a href="{% url 'customer_update' customer.pk %}" class="btn btn-secondary btn-sm" title="Edit Customer">
                             <i class="ph ph-pencil-simple"></i> Edit
                         </a>
