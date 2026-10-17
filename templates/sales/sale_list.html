@@ -4,10 +4,20 @@
 
 {% block content %}
 <div class="page-header">
-    <div class="page-title-group">
+    <div class="page-title-group" style="flex: 1;">
         <div class="section-title">BILLING & POINT OF SALE</div>
         <h1>Sales & Invoices</h1>
         <p class="page-subtitle">Generate bills, issue receipts, track customer transactions, and monitor revenue</p>
+    </div>
+    <div style="display: flex; gap: 24px; align-items: center; margin-right: 24px;">
+        <div>
+            <div style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Total Sales</div>
+            <div style="font-size: 20px; font-weight: 700; color: var(--text-primary);">₹{{ total_sales|floatformat:"2g" }}</div>
+        </div>
+        <div>
+            <div style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Outstanding Amount</div>
+            <div style="font-size: 20px; font-weight: 700; color: var(--danger-text);">₹{{ outstanding_amount|floatformat:"2g" }}</div>
+        </div>
     </div>
     <div class="page-actions">
         <a href="{% url 'sale_create' %}" class="btn btn-primary">
@@ -28,6 +38,12 @@
     <form method="get" class="filter-group">
         {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
 
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="date" name="from_date" value="{{ from_date }}" class="filter-select" title="From Date">
+            <span style="color: var(--text-secondary);">to</span>
+            <input type="date" name="to_date" value="{{ to_date }}" class="filter-select" title="To Date">
+        </div>
+
         <select name="payment_method" class="filter-select" onchange="this.form.submit()">
             <option value="">All Payment Modes</option>
             <option value="Cash" {% if selected_method == 'Cash' %}selected{% endif %}>Cash</option>
@@ -39,17 +55,22 @@
         <select name="payment_status" class="filter-select" onchange="this.form.submit()">
             <option value="">All Payment Statuses</option>
             <option value="Paid" {% if selected_status == 'Paid' %}selected{% endif %}>Paid</option>
+            <option value="Partial" {% if selected_status == 'Partial' %}selected{% endif %}>Partial</option>
             <option value="Pending" {% if selected_status == 'Pending' %}selected{% endif %}>Pending</option>
         </select>
 
-        <select name="customer" class="filter-select" onchange="this.form.submit()">
+        <select name="customer" id="customer-select" class="filter-select" onchange="this.form.submit()">
             <option value="">All Customers</option>
             {% for cust in customers %}
                 <option value="{{ cust.id }}" {% if selected_customer == cust.id|stringformat:"s" %}selected{% endif %}>{{ cust.name }}</option>
             {% endfor %}
         </select>
 
-        {% if search_query or selected_customer or selected_method or selected_status %}
+        <button type="submit" class="btn btn-primary btn-sm">
+            Apply
+        </button>
+
+        {% if search_query or selected_customer or selected_method or selected_status or from_date or to_date %}
             <a href="{% url 'sale_list' %}" class="btn btn-secondary btn-sm">
                 <i class="ph ph-arrow-counter-clockwise"></i> Reset
             </a>
@@ -98,19 +119,35 @@
                         <span class="badge badge-info">{{ sale.payment_method }}</span>
                     </td>
                     <td>
-                        <strong style="font-size: 15px; color: var(--text-primary);">${{ sale.total_amount }}</strong>
+                        <strong style="font-size: 15px; color: var(--text-primary);">₹{{ sale.total_amount }}</strong>
+                        {% if sale.payment_status == 'Partial' %}
+                            <div style="font-size: 11.5px; color: var(--text-secondary); margin-top: 2px;">
+                                Paid: <span style="color: var(--success-text); font-weight: 600;">₹{{ sale.paid_amount }}</span>
+                            </div>
+                        {% endif %}
                     </td>
                     <td>
                         {% if sale.payment_status == 'Paid' %}
                             <span class="badge badge-success">Paid</span>
+                        {% elif sale.payment_status == 'Partial' %}
+                            <span class="badge badge-info">Partial</span>
+                            <div style="font-size: 11px; color: var(--warning-text); font-weight: 600; margin-top: 2px;">Due: ₹{{ sale.due_amount }}</div>
                         {% else %}
                             <span class="badge badge-warning">Pending</span>
                         {% endif %}
                     </td>
                     <td class="actions-cell">
+                        {% if sale.payment_status != 'Paid' %}
+                        <a href="{% url 'sale_payment' sale.pk %}" class="btn btn-primary btn-sm" title="Collect Payment">
+                            <i class="ph ph-currency-inr"></i> Payment
+                        </a>
+                        {% endif %}
                         <a href="{% url 'sale_detail' sale.pk %}" class="btn btn-secondary btn-sm" title="View / Print Invoice">
                             <i class="ph ph-receipt"></i> Bill
                         </a>
+                        <button onclick="shareWhatsApp('{{ sale.customer.phone|default:'' }}', '{{ sale.invoice_number }}', '{{ sale.date|date:'d M Y' }}', '{{ sale.total_amount }}', '{{ sale.payment_status }}', '{{ sale.due_amount }}', '{% url 'sale_detail_public' sale.pk %}')" class="btn btn-success btn-sm" style="background-color: #25D366; border-color: #25D366; color: white;" title="Share via WhatsApp">
+                            <i class="ph ph-whatsapp-logo"></i>
+                        </button>
                         <a href="{% url 'sale_delete' sale.pk %}" class="btn btn-outline-danger btn-sm" title="Cancel / Delete Sale">
                             <i class="ph ph-trash"></i>
                         </a>
@@ -135,4 +172,60 @@
     </div>
     {% include 'includes/_pagination.html' %}
 </div>
+
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+<style>
+    .ts-control {
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        padding: 8px 12px;
+        font-size: 13.5px;
+        min-height: 38px;
+        background-color: var(--surface-color);
+    }
+    .ts-wrapper.single .ts-control {
+        background-color: var(--surface-color);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var el = document.getElementById('customer-select');
+        if (el) {
+            new TomSelect(el, {
+                create: false,
+                placeholder: "Search Customer...",
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                }
+            });
+        }
+    });
+
+    function shareWhatsApp(phone, invoiceNo, date, totalAmount, status, dueAmount, invoicePath) {
+        phone = phone.replace(/[^0-9]/g, '');
+        const invoiceUrl = window.location.origin + invoicePath;
+        
+        let message = `*Cover Land - Invoice* 🛍️\nInvoice No: ${invoiceNo}\nDate: ${date}\nTotal Amount: ₹${totalAmount}`;
+        if (status === 'Partial') {
+            message += `\nDue Amount: ₹${dueAmount}`;
+            message += `\n\n*Pay via UPI / GPay:* 9947318269`;
+        } else if (status === 'Pending') {
+            message += `\n\n*Pay via UPI / GPay:* 9947318269`;
+        }
+        
+        message += `\n\n*View your invoice here:*\n${invoiceUrl}`;
+        message += `\n\nThank you for shopping with us! Have a great day.`;
+        
+        const encodedMessage = encodeURIComponent(message);
+        const url = `https://wa.me/${phone}?text=${encodedMessage}`;
+        window.open(url, '_blank');
+    }
+</script>
+{% endblock %}
 {% endblock %}

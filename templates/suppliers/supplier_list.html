@@ -48,7 +48,9 @@
                 {% for supplier in suppliers %}
                 <tr>
                     <td>
-                        <strong style="color: var(--text-primary);">{{ supplier.name }}</strong>
+                        <a href="{% url 'supplier_detail' supplier.pk %}" style="text-decoration: none;">
+                            <strong style="color: var(--text-primary);">{{ supplier.name }}</strong>
+                        </a>
                     </td>
                     <td>{{ supplier.phone|default:"—" }}</td>
                     <td>{{ supplier.email|default:"—" }}</td>
@@ -61,9 +63,12 @@
                         <span class="badge badge-info">{{ supplier.total_orders }} PO(s)</span>
                     </td>
                     <td>
-                        <strong>${{ supplier.total_purchased|default:"0.00" }}</strong>
+                        <strong>₹{{ supplier.total_purchased|default:"0.00" }}</strong>
                     </td>
                     <td class="actions-cell">
+                        <a href="{% url 'supplier_detail' supplier.pk %}" class="btn btn-secondary btn-sm" title="View Supplier Details">
+                            <i class="ph ph-eye"></i> View
+                        </a>
                         <a href="{% url 'supplier_update' supplier.pk %}" class="btn btn-secondary btn-sm" title="Edit Supplier">
                             <i class="ph ph-pencil-simple"></i> Edit
                         </a>

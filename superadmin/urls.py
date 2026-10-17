@@ -20,28 +20,35 @@ urlpatterns = [
     path('products/<int:pk>/delete/', views.ProductDeleteView.as_view(), name='product_delete'),
     path('stock/', views.StockListView.as_view(), name='stock_list'),
     path('stock/<int:pk>/adjust/', views.StockAdjustView.as_view(), name='stock_adjust'),
+    path('products/<int:pk>/quick-price/', views.ProductQuickUpdatePriceView.as_view(), name='product_quick_price'),
 
     # Purchases
     path('purchases/', views.PurchaseListView.as_view(), name='purchase_list'),
     path('purchases/new/', views.PurchaseCreateView.as_view(), name='purchase_create'),
     path('purchases/<int:pk>/', views.PurchaseDetailView.as_view(), name='purchase_detail'),
+    path('purchases/<int:pk>/mark-paid/', views.PurchaseMarkPaidView.as_view(), name='purchase_mark_paid'),
+    path('purchases/<int:pk>/payment/', views.PurchasePaymentCreateView.as_view(), name='purchase_payment'),
     path('purchases/<int:pk>/delete/', views.PurchaseDeleteView.as_view(), name='purchase_delete'),
 
     # Billing / Sales
     path('sales/', views.SaleListView.as_view(), name='sale_list'),
     path('sales/new/', views.SaleCreateView.as_view(), name='sale_create'),
     path('sales/<int:pk>/', views.SaleDetailView.as_view(), name='sale_detail'),
+    path('sales/<int:pk>/invoice/', views.SaleDetailPublicView.as_view(), name='sale_detail_public'),
     path('sales/<int:pk>/delete/', views.SaleDeleteView.as_view(), name='sale_delete'),
+    path('sales/<int:pk>/payment/', views.SalePaymentCreateView.as_view(), name='sale_payment'),
 
     # Customers
     path('customers/', views.CustomerListView.as_view(), name='customer_list'),
     path('customers/new/', views.CustomerCreateView.as_view(), name='customer_create'),
+    path('customers/<int:pk>/', views.CustomerDetailView.as_view(), name='customer_detail'),
     path('customers/<int:pk>/edit/', views.CustomerUpdateView.as_view(), name='customer_update'),
     path('customers/<int:pk>/delete/', views.CustomerDeleteView.as_view(), name='customer_delete'),
 
     # Suppliers
     path('suppliers/', views.SupplierListView.as_view(), name='supplier_list'),
     path('suppliers/new/', views.SupplierCreateView.as_view(), name='supplier_create'),
+    path('suppliers/<int:pk>/', views.SupplierDetailView.as_view(), name='supplier_detail'),
     path('suppliers/<int:pk>/edit/', views.SupplierUpdateView.as_view(), name='supplier_update'),
     path('suppliers/<int:pk>/delete/', views.SupplierDeleteView.as_view(), name='supplier_delete'),
 

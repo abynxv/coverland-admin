@@ -40,7 +40,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="{{ form.amount.id_for_label }}">Amount ($) <span class="required">*</span></label>
+                <label class="form-label" for="{{ form.amount.id_for_label }}">Amount (₹) <span class="required">*</span></label>
                 {{ form.amount }}
                 {% if form.amount.errors %}<ul class="form-errors">{% for err in form.amount.errors %}<li>{{ err }}</li>{% endfor %}</ul>{% endif %}
             </div>

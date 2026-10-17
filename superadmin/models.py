@@ -103,11 +103,50 @@ class Purchase(models.Model):
         self.save(update_fields=['total_amount', 'paid_amount'])
         return total
 
+    def update_payment_status(self):
+        total_payments = self.purchasepayments.aggregate(models.Sum('amount'))['amount__sum'] or Decimal('0.00')
+        self.paid_amount = total_payments
+        if self.paid_amount >= self.total_amount:
+            self.payment_status = 'Paid'
+            self.paid_amount = self.total_amount
+        elif self.paid_amount > 0:
+            self.payment_status = 'Partial'
+        else:
+            self.payment_status = 'Pending'
+        self.save(update_fields=['paid_amount', 'payment_status'])
+
     def __str__(self):
         return f"Purchase #{self.id} - {self.supplier.name if self.supplier else 'N/A'}"
 
     class Meta:
         ordering = ['-date', '-id']
+
+
+class PurchasePayment(models.Model):
+    PAYMENT_METHODS = [
+        ('Cash', 'Cash'),
+        ('Card', 'Card'),
+        ('UPI', 'UPI'),
+        ('Bank Transfer', 'Bank Transfer'),
+    ]
+
+    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE, related_name='purchasepayments')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=50, choices=PAYMENT_METHODS)
+    date = models.DateField(default=timezone.now)
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now, blank=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.purchase.update_payment_status()
+        
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.purchase.update_payment_status()
+
+    class Meta:
+        ordering = ['-date', '-created_at']
 
 
 class PurchaseItem(models.Model):
@@ -135,6 +174,7 @@ class Sale(models.Model):
 
     PAYMENT_STATUS_CHOICES = [
         ('Paid', 'Paid'),
+        ('Partial', 'Partial'),
         ('Pending', 'Pending'),
     ]
 
@@ -142,29 +182,73 @@ class Sale(models.Model):
     invoice_number = models.CharField(max_length=50, unique=True, blank=True)
     date = models.DateField(default=timezone.now)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     payment_method = models.CharField(max_length=50, choices=PAYMENT_METHODS, default='Cash')
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='Paid')
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now, blank=True)
+
+    @property
+    def due_amount(self):
+        return max(Decimal('0.00'), (self.total_amount or Decimal('0.00')) - (self.paid_amount or Decimal('0.00')))
 
     def save(self, *args, **kwargs):
         if not self.invoice_number:
             prefix = timezone.now().strftime('INV-%Y%m%d')
             rand_suffix = uuid.uuid4().hex[:4].upper()
             self.invoice_number = f"{prefix}-{rand_suffix}"
+        if self.paid_amount is None:
+            self.paid_amount = Decimal('0.00')
         super().save(*args, **kwargs)
 
     def calculate_total(self):
         total = sum(item.subtotal for item in self.items.all())
         self.total_amount = total
-        self.save(update_fields=['total_amount'])
+        if self.payment_status == 'Paid':
+            self.paid_amount = total
+        elif self.payment_status == 'Pending':
+            self.paid_amount = Decimal('0.00')
+        self.save(update_fields=['total_amount', 'paid_amount'])
         return total
+
+    def update_payment_status(self):
+        total_payments = self.salepayments.aggregate(models.Sum('amount'))['amount__sum'] or Decimal('0.00')
+        self.paid_amount = total_payments
+        if self.paid_amount >= self.total_amount:
+            self.payment_status = 'Paid'
+            self.paid_amount = self.total_amount
+        elif self.paid_amount > 0:
+            self.payment_status = 'Partial'
+        else:
+            self.payment_status = 'Pending'
+        self.save(update_fields=['paid_amount', 'payment_status'])
 
     def __str__(self):
         return f"Sale {self.invoice_number} ({self.customer.name if self.customer else 'Cash Customer'})"
 
     class Meta:
         ordering = ['-date', '-id']
+
+
+class SalePayment(models.Model):
+    sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='salepayments')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=50, choices=Sale.PAYMENT_METHODS)
+    date = models.DateField(default=timezone.now)
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now, blank=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.sale.update_payment_status()
+        
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.sale.update_payment_status()
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+
 
 
 class SaleItem(models.Model):
@@ -191,6 +275,7 @@ class Expense(models.Model):
         ('Packaging', 'Packaging & Supplies'),
         ('Transport', 'Transport & Shipping'),
         ('Marketing', 'Marketing & Ads'),
+        ('Vendor Relations', 'Vendor Relations'),
         ('General', 'General / Other'),
     ]
 

@@ -6,11 +6,12 @@ from superadmin.models import Sale, SaleItem, Product
 class SaleForm(forms.ModelForm):
     class Meta:
         model = Sale
-        fields = ['customer', 'payment_method', 'payment_status', 'notes']
+        fields = ['customer', 'payment_method', 'payment_status', 'paid_amount', 'notes']
         widgets = {
             'customer': forms.Select(attrs={'class': 'form-select'}),
             'payment_method': forms.Select(attrs={'class': 'form-select'}),
             'payment_status': forms.Select(attrs={'class': 'form-select'}),
+            'paid_amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Optional bill memo or customer note...'}),
         }
 

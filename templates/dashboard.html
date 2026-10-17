@@ -11,7 +11,7 @@
         </div>
         <div class="stat-info">
             <div class="stat-label">Total Sales Revenue</div>
-            <div class="stat-value">${{ total_sales }}</div>
+            <div class="stat-value">₹{{ total_sales }}</div>
             <div class="stat-subtext">Cumulative billed sales</div>
         </div>
     </div>
@@ -22,7 +22,7 @@
         </div>
         <div class="stat-info">
             <div class="stat-label">Total Purchases</div>
-            <div class="stat-value">${{ total_purchases }}</div>
+            <div class="stat-value">₹{{ total_purchases }}</div>
             <div class="stat-subtext">Inventory procurement</div>
         </div>
     </div>
@@ -33,7 +33,7 @@
         </div>
         <div class="stat-info">
             <div class="stat-label">Total Expenses</div>
-            <div class="stat-value">${{ total_expenses }}</div>
+            <div class="stat-value">₹{{ total_expenses }}</div>
             <div class="stat-subtext">Shop overheads & bills</div>
         </div>
     </div>
@@ -45,7 +45,7 @@
         <div class="stat-info">
             <div class="stat-label">Net Financial Flow</div>
             <div class="stat-value" style="color: {% if estimated_margin < 0 %}var(--danger-text){% else %}var(--success-text){% endif %};">
-                ${{ estimated_margin }}
+                ₹{{ estimated_margin }}
             </div>
             <div class="stat-subtext">Sales - (Procurement + Expenses)</div>
         </div>
@@ -195,7 +195,7 @@
                         </div>
                     </div>
                     <div style="text-align: right;">
-                        <strong style="color: var(--text-primary); font-size: 14px;">${{ sale.total_amount }}</strong>
+                        <strong style="color: var(--text-primary); font-size: 14px;">₹{{ sale.total_amount }}</strong>
                         <div style="font-size: 11px; color: var(--text-secondary);">{{ sale.payment_method }}</div>
                     </div>
                 </li>

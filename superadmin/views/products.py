@@ -5,6 +5,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, F
 from django.urls import reverse_lazy
 from django.db.models import Q, F
 from django.shortcuts import get_object_or_404, redirect
+from django.views import View
 from superadmin.models import Product, Category
 from superadmin.forms import ProductForm, StockAdjustmentForm
 
@@ -110,3 +111,23 @@ class StockAdjustView(LoginRequiredMixin, FormView):
         self.product.save(update_fields=['stock_quantity'])
         messages.success(self.request, f"Successfully {action_desc} {self.product.name}. Current stock: {self.product.stock_quantity}.")
         return redirect('stock_list')
+
+
+class ProductQuickUpdatePriceView(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        product = get_object_or_404(Product, pk=pk)
+        cost_price = request.POST.get('cost_price')
+        selling_price = request.POST.get('selling_price')
+        
+        if cost_price is not None and selling_price is not None:
+            try:
+                product.cost_price = float(cost_price)
+                product.selling_price = float(selling_price)
+                product.save(update_fields=['cost_price', 'selling_price'])
+                messages.success(request, f"Prices updated for {product.name}.")
+            except ValueError:
+                messages.error(request, f"Invalid price format for {product.name}.")
+                
+        # Redirect back to where the request came from (or stock_list as fallback)
+        referer = request.META.get('HTTP_REFERER', 'stock_list')
+        return redirect(referer if 'HTTP_REFERER' in request.META else 'stock_list')

@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Supplier Details - {{ supplier.name }} - Cover Land{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title-group">
+        <div class="section-title">SUPPLIER DETAILS</div>
+        <h1>{{ supplier.name }}</h1>
+        <p class="page-subtitle">{% if supplier.phone %}📞 {{ supplier.phone }} {% endif %}{% if supplier.email %}✉️ {{ supplier.email }} {% endif %}{% if supplier.address %}📍 {{ supplier.address }}{% endif %}</p>
+    </div>
+    <div class="page-actions">
+        <a href="{% url 'supplier_update' supplier.pk %}" class="btn btn-secondary">
+            <i class="ph ph-pencil-simple"></i> Edit Supplier
+        </a>
+        <a href="{% url 'supplier_list' %}" class="btn btn-secondary">
+            <i class="ph ph-arrow-left"></i> Back to Suppliers
+        </a>
+    </div>
+</div>
+
+<div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-bottom: 24px;">
+    <div class="stat-card">
+        <div class="stat-icon purple">
+            <i class="ph-bold ph-truck"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Purchased</div>
+            <div class="stat-value">₹{{ total_purchased }}</div>
+            <div class="stat-subtext">Sum of all invoices</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i class="ph-bold ph-check-circle"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Paid</div>
+            <div class="stat-value" style="color: var(--success-text);">₹{{ total_paid }}</div>
+            <div class="stat-subtext">Amount already settled</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon red">
+            <i class="ph-bold ph-warning-circle"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Pending Balance</div>
+            <div class="stat-value" style="{% if total_pending > 0 %}color: var(--danger-text);{% else %}color: var(--success-text);{% endif %}">
+                ₹{{ total_pending }}
+            </div>
+            <div class="stat-subtext">Amount due to supplier</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header" style="padding: 16px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; font-size: 16px; color: var(--text-primary);">Purchase History</h3>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Invoice / ID</th>
+                    <th>Date</th>
+                    <th style="text-align: right;">Total Amount</th>
+                    <th style="text-align: right;">Paid</th>
+                    <th style="text-align: right;">Due</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for purchase in purchases %}
+                <tr>
+                    <td>
+                        <strong style="color: var(--text-primary);">{{ purchase.invoice_number|default:purchase.id }}</strong>
+                    </td>
+                    <td>{{ purchase.date|date:"d M Y" }}</td>
+                    <td style="text-align: right;"><strong>₹{{ purchase.total_amount }}</strong></td>
+                    <td style="text-align: right; color: var(--success-text);">₹{{ purchase.paid_amount }}</td>
+                    <td style="text-align: right; color: var(--warning-text); font-weight: 600;">₹{{ purchase.due_amount }}</td>
+                    <td>
+                        {% if purchase.payment_status == 'Paid' %}
+                            <span class="badge badge-success">Paid</span>
+                        {% elif purchase.payment_status == 'Partial' %}
+                            <span class="badge badge-warning">Partial</span>
+                        {% else %}
+                            <span class="badge badge-danger">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="actions-cell">
+                        {% if purchase.payment_status != 'Paid' %}
+                        <form method="post" action="{% url 'purchase_mark_paid' purchase.pk %}" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <button type="submit" class="btn btn-primary btn-sm" title="Mark as Fully Paid">
+                                <i class="ph ph-check-circle"></i> Clear Payment
+                            </button>
+                        </form>
+                        {% endif %}
+                        <a href="{% url 'purchase_detail' purchase.pk %}" class="btn btn-secondary btn-sm" title="View Purchase">
+                            <i class="ph ph-eye"></i> View
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="ph ph-receipt"></i>
+                            <h3>No purchases yet</h3>
+                            <p>You haven't recorded any purchases from this supplier.</p>
+                            <a href="{% url 'purchase_create' %}?supplier={{ supplier.pk }}" class="btn btn-primary btn-sm">
+                                <i class="ph ph-plus"></i> New Purchase
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
